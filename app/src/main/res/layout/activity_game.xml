@@ -6,27 +6,6 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="96dp"
-        android:layout_weight="0"
-        android:background="@color/colorPrimary"
-        android:elevation="16dp"
-        app:layout_collapseMode="pin"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-        app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
-
-        <TextView
-            android:id="@+id/levelTv"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Level:1"
-            android:textColor="@color/ab_textColor"
-            android:textSize="42dp" />
-    </android.support.v7.widget.Toolbar>
-
     <FrameLayout
         android:id="@+id/content_container"
         android:layout_width="match_parent"
@@ -46,7 +25,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:text="3"
-                android:textColor="@color/colorPrimaryDark"
+                android:textColor="@color/countdown_text_color"
                 android:textSize="128dp"
                 android:textStyle="bold" />
 

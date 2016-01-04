@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimary">@color/material_blue</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
     <color name="ab_textColor">@color/white</color>
@@ -11,6 +11,8 @@
     <color name="info_btn_tint">#000000</color>
 
     <color name="board_bg">#E3F2FD</color>
-    <color name="top_grid">#FF0000</color>
-    <color name="btm_grid">#0000FF</color>
+    <color name="top_grid">@color/material_deep_orange</color>
+    <color name="btm_grid">@color/material_blue</color>
+    <color name="countdown_flash_color">@color/material_yellow</color>
+    <color name="countdown_text_color">@color/material_blue_grey</color>
 </resources>

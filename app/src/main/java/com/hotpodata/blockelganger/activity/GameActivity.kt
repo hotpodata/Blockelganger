@@ -23,8 +23,8 @@ import java.util.concurrent.TimeUnit
 
 class GameActivity : AppCompatActivity() {
 
-    var topGrid = initFullGrid(1,1)
-    var bottomGrid = initFullGrid(1,1)
+    var topGrid = initFullGrid(1, 1)
+    var bottomGrid = initFullGrid(1, 1)
 
     var touchCoords: Pair<Int, Int>? = null
     var touchModeIsAdd = false
@@ -36,7 +36,7 @@ class GameActivity : AppCompatActivity() {
     var level = 0
         set(lvl: Int) {
             field = lvl
-            levelTv.text = getString(R.string.level_template, lvl)
+            supportActionBar?.subtitle = getString(R.string.level_template, lvl)
         }
 
 
@@ -117,7 +117,7 @@ class GameActivity : AppCompatActivity() {
             var infoOutAnim = genHideInfoAnim()
             var startSmashAnim = genSmashAnim()
             var startAnim = AnimatorSet()
-            startAnim.playSequentially(infoOutAnim,startSmashAnim)
+            startAnim.playSequentially(infoOutAnim, startSmashAnim)
             startAnim.addListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: Animator?) {
                     subscribeToTicker()
@@ -125,15 +125,6 @@ class GameActivity : AppCompatActivity() {
             })
             actionAnimator = startAnim
             startAnim.start()
-
-
-//            //TODO: ANimate info out
-//            if (level != 1) {
-//                unsubscribeFromTicker()
-//                level = 1
-//                initGridsForLevel(level)
-//            }
-//            subscribeToTicker()
         }
 
     }
@@ -155,7 +146,7 @@ class GameActivity : AppCompatActivity() {
                             l ->
                             if (l < seconds) {
                                 countdown_tv.text = "" + (seconds - l)
-                                var anim = genCountDownOutAnim(Color.YELLOW)
+                                var anim = genCountDownOutAnim(resources.getColor(R.color.countdown_flash_color))
                                 anim.start()
                             }
                         }
