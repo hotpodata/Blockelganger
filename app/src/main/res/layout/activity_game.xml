@@ -10,9 +10,9 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="96dp"
+        android:layout_weight="0"
         android:background="@color/colorPrimary"
         android:elevation="16dp"
-        android:layout_weight="0"
         app:layout_collapseMode="pin"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
         app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
@@ -32,22 +32,23 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:background="#E3F2FD">
+        android:background="@color/board_bg">
 
         <FrameLayout
             android:id="@+id/countdown_container"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:visibility="invisible">
 
             <TextView
                 android:id="@+id/countdown_tv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="3"
-                android:textSize="128dp"
                 android:layout_gravity="center"
-                android:textStyle="bold"
-                android:textColor="@color/colorPrimaryDark"/>
+                android:text="3"
+                android:textColor="@color/colorPrimaryDark"
+                android:textSize="128dp"
+                android:textStyle="bold" />
 
         </FrameLayout>
 
@@ -59,25 +60,71 @@
             <com.hotpodata.blocklib.view.GridBinderView
                 android:id="@+id/gridbinderview_center"
                 android:layout_width="match_parent"
-                android:layout_height="192dp"
+                android:layout_height="@dimen/grid_double_height"
                 android:layout_gravity="center_vertical"
-                android:elevation="0dp"
                 android:visibility="invisible" />
 
             <com.hotpodata.blocklib.view.GridBinderView
                 android:id="@+id/gridbinderview_top"
                 android:layout_width="match_parent"
-                android:layout_height="96dp"
+                android:layout_height="@dimen/grid_height"
                 android:layout_gravity="top"
                 android:elevation="8dp" />
 
             <com.hotpodata.blocklib.view.GridBinderView
                 android:id="@+id/gridbinderview_bottom"
                 android:layout_width="match_parent"
-                android:layout_height="96dp"
+                android:layout_height="@dimen/grid_height"
                 android:layout_gravity="bottom"
                 android:elevation="8dp" />
 
         </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/start_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ImageView
+                android:id="@+id/play_btn"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/grid_double_height"
+                android:layout_gravity="center_vertical"
+                android:gravity="center"
+                android:src="@drawable/ic_play_circle_outline_24dp"
+                android:tint="@color/info_btn_tint" />
+
+            <TextView
+                android:id="@+id/info_top"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/grid_height"
+                android:layout_gravity="top"
+                android:background="@color/info_shade"
+                android:gravity="center"
+                android:paddingLeft="@dimen/keyline_one"
+                android:paddingRight="@dimen/keyline_one"
+                android:paddingTop="8dp"
+                android:text="@string/info_top"
+                android:textColor="@color/info_text"
+                android:textSize="22dp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/info_bottom"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/grid_height"
+                android:layout_gravity="bottom"
+                android:background="@color/info_shade"
+                android:gravity="center"
+                android:paddingBottom="8dp"
+                android:paddingLeft="@dimen/keyline_one"
+                android:paddingRight="@dimen/keyline_one"
+                android:text="@string/info_bottom"
+                android:textColor="@color/info_text"
+                android:textSize="22dp"
+                android:textStyle="bold" />
+
+        </FrameLayout>
+
     </FrameLayout>
 </LinearLayout>

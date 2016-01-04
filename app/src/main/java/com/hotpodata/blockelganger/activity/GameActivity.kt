@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.MotionEvent
+import android.view.View
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import com.hotpodata.blockelganger.R
@@ -22,8 +23,8 @@ import java.util.concurrent.TimeUnit
 
 class GameActivity : AppCompatActivity() {
 
-    var topGrid = Grid(1, 1)
-    var bottomGrid = Grid(1, 1)
+    var topGrid = initFullGrid(1,1)
+    var bottomGrid = initFullGrid(1,1)
 
     var touchCoords: Pair<Int, Int>? = null
     var touchModeIsAdd = false
@@ -32,7 +33,7 @@ class GameActivity : AppCompatActivity() {
     var random = Random()
     var actionAnimator: Animator? = null
 
-    var level = 1
+    var level = 0
         set(lvl: Int) {
             field = lvl
             levelTv.text = getString(R.string.level_template, lvl)
@@ -43,20 +44,23 @@ class GameActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_game)
 
-        //Set up grids
-        initGridsForLevel(level)
-
         //Set up how to draw the blocks
-        gridbinderview_bottom.blockDrawer = object : GridBinderView.IBlockDrawer {
+        val topColor = getResources().getColor(R.color.top_grid)
+        val btmColor = getResources().getColor(R.color.btm_grid)
+        gridbinderview_top.blockDrawer = object : GridBinderView.IBlockDrawer {
             override fun drawBlock(canvas: Canvas, data: Any) {
-                canvas.drawColor(Color.RED)
+                canvas.drawColor(topColor)
             }
         }
         gridbinderview_bottom.blockDrawer = object : GridBinderView.IBlockDrawer {
             override fun drawBlock(canvas: Canvas, data: Any) {
-                canvas.drawColor(Color.BLUE)
+                canvas.drawColor(btmColor)
             }
         }
+
+        //Set up grids
+        gridbinderview_top.grid = topGrid
+        gridbinderview_bottom.grid = bottomGrid
 
         //Set up the touch listener for the top grid
         gridbinderview_top.setOnTouchListener {
@@ -106,13 +110,30 @@ class GameActivity : AppCompatActivity() {
         }
 
         //This is just a temporary way to start/restart the game until we get real controls hooked up
-        gridbinderview_bottom.setOnClickListener {
-            if (level != 1) {
-                unsubscribeFromTicker()
-                level = 1
-                initGridsForLevel(level)
-            }
-            subscribeToTicker()
+        play_btn.setOnClickListener {
+            unsubscribeFromTicker()
+            level = 0
+
+            var infoOutAnim = genHideInfoAnim()
+            var startSmashAnim = genSmashAnim()
+            var startAnim = AnimatorSet()
+            startAnim.playSequentially(infoOutAnim,startSmashAnim)
+            startAnim.addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator?) {
+                    subscribeToTicker()
+                }
+            })
+            actionAnimator = startAnim
+            startAnim.start()
+
+
+//            //TODO: ANimate info out
+//            if (level != 1) {
+//                unsubscribeFromTicker()
+//                level = 1
+//                initGridsForLevel(level)
+//            }
+//            subscribeToTicker()
         }
 
     }
@@ -224,7 +245,7 @@ class GameActivity : AppCompatActivity() {
      * Init the grids according to the level and bind them to the views
      */
     fun initGridsForLevel(lvl: Int) {
-        topGrid = initTopGrid(gridWidthForLevel(lvl), gridHeightForLevel(lvl))
+        topGrid = initFullGrid(gridWidthForLevel(lvl), gridHeightForLevel(lvl))
         bottomGrid = initBottomGrid(gridWidthForLevel(lvl), gridHeightForLevel(lvl))
         gridbinderview_top.grid = topGrid
         gridbinderview_bottom.grid = bottomGrid
@@ -267,7 +288,7 @@ class GameActivity : AppCompatActivity() {
     /**
      * Generate a grid to use for the top in the starting position
      */
-    fun initTopGrid(width: Int, height: Int): Grid {
+    fun initFullGrid(width: Int, height: Int): Grid {
         var grid = Grid(width, height)
         for (i in 0..width - 1) {
             for (j in 0..height - 1) {
@@ -378,7 +399,43 @@ class GameActivity : AppCompatActivity() {
         animCountdownOut.playTogether(countdownZoomX, countdownZoomY, countdownAlpha, bgAnim)
         animCountdownOut.interpolator = AccelerateInterpolator()
         animCountdownOut.setDuration(700)
+        animCountdownOut.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationStart(animation: Animator?) {
+                countdown_container.visibility = View.VISIBLE
+            }
+
+            override fun onAnimationCancel(animation: Animator?) {
+                done()
+            }
+
+            override fun onAnimationEnd(animation: Animator?) {
+                done()
+            }
+
+            fun done() {
+                countdown_container.visibility = View.INVISIBLE
+            }
+        })
         return animCountdownOut
+    }
+
+    fun genHideInfoAnim(): Animator {
+        //Text anims
+        var infoTopY = ObjectAnimator.ofFloat(info_top, "translationY", 0f, -info_top.height.toFloat())
+        var infoBtmY = ObjectAnimator.ofFloat(info_bottom, "translationY", 0f, info_bottom.height.toFloat())
+
+        //Play btn anims
+        var endScale = 0.1f
+        var playScaleX = ObjectAnimator.ofFloat(play_btn, "scaleX", 1f, endScale)
+        var playScaleY = ObjectAnimator.ofFloat(play_btn, "scaleY", 1f, endScale)
+        var playAlpha = ObjectAnimator.ofFloat(play_btn, "alpha", 1f, 0f)
+        var playBtnOut = AnimatorSet()
+        playBtnOut.playTogether(playScaleX, playScaleY, playAlpha)
+
+        var anim = AnimatorSet()
+        anim.playTogether(infoTopY, infoBtmY, playBtnOut)
+        anim.setDuration(450)
+        return anim
     }
 
     /**

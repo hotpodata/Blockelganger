@@ -5,4 +5,12 @@
     <color name="colorAccent">#FF4081</color>
     <color name="ab_textColor">@color/white</color>
     <color name="white">#FFFFFF</color>
+
+    <color name="info_text">@color/white</color>
+    <color name="info_shade">#00000000</color>
+    <color name="info_btn_tint">#000000</color>
+
+    <color name="board_bg">#E3F2FD</color>
+    <color name="top_grid">#FF0000</color>
+    <color name="btm_grid">#0000FF</color>
 </resources>
