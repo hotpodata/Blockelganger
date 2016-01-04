@@ -33,6 +33,10 @@ class GameActivity : AppCompatActivity() {
     var actionAnimator: Animator? = null
 
     var level = 1
+        set(lvl: Int) {
+            field = lvl
+            levelTv.text = getString(R.string.level_template, lvl)
+        }
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -397,4 +401,5 @@ class GameActivity : AppCompatActivity() {
     fun secondForLevel(lvl: Int): Int {
         return lvl * 2 + 1
     }
+
 }

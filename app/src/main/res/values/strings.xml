@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Blockelganger</string>
+    <string name="level_template">Level:%1$d</string>
 </resources>
