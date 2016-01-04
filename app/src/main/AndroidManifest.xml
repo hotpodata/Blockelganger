@@ -3,16 +3,21 @@
     package="com.hotpodata.blockelganger">
 
     <application
+        android:name=".BlockelgangerApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:name=".BlockelgangerApplication"
         android:theme="@style/AppTheme">
-        <activity android:name=".GameActivity">
+        
+        <activity
+            android:name=".activity.GameActivity"
+            android:launchMode="singleInstance"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
+                <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
