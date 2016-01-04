@@ -1,0 +1,3 @@
+[submodule "BlockLib"]
+	path = BlockLib
+	url = git@github.com:hotpodata/BlockLib.git
