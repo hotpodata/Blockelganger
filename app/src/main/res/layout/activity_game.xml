@@ -30,22 +30,20 @@
         android:id="@+id/content_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#546E7A">
+        android:background="#E3F2FD">
 
         <FrameLayout
             android:id="@+id/grid_container"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_margin="@dimen/keyline_one"
-            android:background="#E3F2FD">
+            android:layout_height="match_parent">
 
             <com.hotpodata.blocklib.view.GridBinderView
                 android:id="@+id/gridbinderview_center"
                 android:layout_width="match_parent"
                 android:layout_height="192dp"
                 android:layout_gravity="center_vertical"
-                android:visibility="invisible"
-                android:elevation="0dp" />
+                android:elevation="0dp"
+                android:visibility="invisible" />
 
             <com.hotpodata.blocklib.view.GridBinderView
                 android:id="@+id/gridbinderview_top"

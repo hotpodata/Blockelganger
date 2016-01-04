@@ -1,10 +1,16 @@
 package com.hotpodata.blockelganger.activity
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.MotionEvent
+import android.view.animation.AccelerateInterpolator
+import android.view.animation.DecelerateInterpolator
 import com.hotpodata.blockelganger.R
 import com.hotpodata.blocklib.Grid
 import com.hotpodata.blocklib.GridHelper
@@ -79,9 +85,7 @@ class GameActivity : AppCompatActivity() {
         }
 
         gridbinderview_bottom.setOnClickListener {
-            var trans = smashGrids()
-            gridbinderview_top.animate().translationY(trans.first).start()
-            gridbinderview_bottom.animate().translationY(trans.second).start()
+            genSmashAnim().start()
         }
 
     }
@@ -154,32 +158,80 @@ class GameActivity : AppCompatActivity() {
     /**
      * This method returns the required topShape translation and bottomShape translation in a pair
      */
-    fun smashGrids():Pair<Float,Float>{
+    fun smashGrids(): Pair<Float, Float> {
         var btmG = GridHelper.copyGrid(bottomGrid)
         var topG = GridHelper.copyGrid(topGrid)
 
         var yOffset = 0
         var workingBoard = Grid(topG.width, topG.height * 2)
-        GridHelper.addGrid(workingBoard,topG,0,0)
-        while(!GridHelper.gridsCollide(workingBoard,btmG,0,workingBoard.height - btmG.height - (yOffset + 1)) && yOffset < workingBoard.height){
+        GridHelper.addGrid(workingBoard, topG, 0, 0)
+        while (!GridHelper.gridsCollide(workingBoard, btmG, 0, workingBoard.height - btmG.height - (yOffset + 1)) && yOffset < workingBoard.height) {
             yOffset++
         }
-        GridHelper.addGrid(workingBoard, btmG,0,workingBoard.height - btmG.height - yOffset)
+        GridHelper.addGrid(workingBoard, btmG, 0, workingBoard.height - btmG.height - yOffset)
 
         //This is the shape after the things have been smashed together
-        var combinedShape = GridHelper.copyGridPortion(workingBoard,0,0,workingBoard.width,workingBoard.height - yOffset)
+        var combinedShape = GridHelper.copyGridPortion(workingBoard, 0, 0, workingBoard.width, workingBoard.height - yOffset)
 
         //We add our new board so that we can easily get coordinates for smashing things...
         var centerBoard = Grid(topG.width, topG.height * 2)
-        GridHelper.addGrid(centerBoard,combinedShape,0,yOffset/2)
+        GridHelper.addGrid(centerBoard, combinedShape, 0, yOffset / 2)
         gridbinderview_center.grid = centerBoard
 
-        var topShapePos = gridbinderview_center.getSubGridPosition(topG,0,yOffset/2)
-        var btmShapePos = gridbinderview_center.getSubGridPosition(btmG,0,workingBoard.height - btmG.height - yOffset)
+        var topShapePos = gridbinderview_center.getSubGridPosition(topG, 0, yOffset / 2)
+        var btmShapePos = gridbinderview_center.getSubGridPosition(btmG, 0, workingBoard.height - btmG.height - yOffset)
 
         var topTransY = gridbinderview_center.top + topShapePos.top - gridbinderview_top.top
         var btmTransY = gridbinderview_center.top + btmShapePos.top - gridbinderview_bottom.top
 
-        return Pair(topTransY,btmTransY)
+        return Pair(topTransY, btmTransY)
+    }
+
+    /**
+     * This builds a nice animation for the two sides to crash together.
+     */
+    fun genSmashAnim(): Animator {
+        var trans = smashGrids()
+
+        var topMove = ObjectAnimator.ofFloat(gridbinderview_top, "translationY", 0f, trans.first)
+        var btmMove = ObjectAnimator.ofFloat(gridbinderview_bottom, "translationY", 0f, trans.second)
+        var animMoves = AnimatorSet()
+        animMoves.playTogether(topMove, btmMove)
+        animMoves.interpolator = AccelerateInterpolator()
+        animMoves.setDuration(350)
+
+        var endScale = 0.2f
+        var gridsZoomX = ObjectAnimator.ofFloat(grid_container, "scaleX", 1f, endScale)
+        var gridsZoomY = ObjectAnimator.ofFloat(grid_container, "scaleY", 1f, endScale)
+        var gridsAlpha = ObjectAnimator.ofFloat(grid_container, "alpha", 1f, 0f)
+        var animGridsOut = AnimatorSet()
+        animGridsOut.playTogether(gridsZoomX, gridsZoomY, gridsAlpha)
+        animGridsOut.interpolator = AccelerateInterpolator()
+        animGridsOut.setDuration(700)
+
+
+        var topReturn = ObjectAnimator.ofFloat(gridbinderview_top, "translationY", -gridbinderview_top.height.toFloat(), 0f)
+        var btmReturn = ObjectAnimator.ofFloat(gridbinderview_bottom, "translationY", gridbinderview_bottom.height.toFloat(), 0f)
+        var animReenter = AnimatorSet()
+        animReenter.playTogether(topReturn, btmReturn)
+        animReenter.interpolator = DecelerateInterpolator()
+        animReenter.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationStart(animation: Animator?) {
+                grid_container.scaleX = 1f
+                grid_container.scaleY = 1f
+                grid_container.alpha = 1f
+
+                //Dimens should come from levels
+                topGrid = initTopGrid(4, 2)
+                gridbinderview_top.grid = topGrid
+                bottomGrid = initBottomGrid(4, 2)
+                gridbinderview_bottom.grid = bottomGrid
+            }
+        })
+        animGridsOut.setDuration(450)
+
+        var animCombined = AnimatorSet()
+        animCombined.playSequentially(animMoves,animGridsOut,animReenter)
+        return animCombined
     }
 }
