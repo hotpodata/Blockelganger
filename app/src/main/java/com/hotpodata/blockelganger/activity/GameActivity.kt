@@ -22,8 +22,8 @@ import java.util.concurrent.TimeUnit
 
 class GameActivity : AppCompatActivity() {
 
-    var topGrid = Grid(4, 2)
-    var bottomGrid = Grid(4, 2)
+    var topGrid = Grid(1, 1)
+    var bottomGrid = Grid(1, 1)
 
     var touchCoords: Pair<Int, Int>? = null
     var touchModeIsAdd = false
@@ -32,74 +32,95 @@ class GameActivity : AppCompatActivity() {
     var random = Random()
     var actionAnimator: Animator? = null
 
+    var level = 1
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_game)
 
-        topGrid = initTopGrid(4, 2)
-        bottomGrid = initBottomGrid(4, 2)
+        //Set up grids
+        initGridsForLevel(level)
 
-        gridbinderview_top.grid = topGrid
-        gridbinderview_bottom.grid = bottomGrid
+        //Set up how to draw the blocks
+        gridbinderview_bottom.blockDrawer = object : GridBinderView.IBlockDrawer {
+            override fun drawBlock(canvas: Canvas, data: Any) {
+                canvas.drawColor(Color.RED)
+            }
+        }
         gridbinderview_bottom.blockDrawer = object : GridBinderView.IBlockDrawer {
             override fun drawBlock(canvas: Canvas, data: Any) {
                 canvas.drawColor(Color.BLUE)
             }
         }
 
+        //Set up the touch listener for the top grid
         gridbinderview_top.setOnTouchListener {
             view, motionEvent ->
-            var gridView = view as GridBinderView
-            when (motionEvent.actionMasked) {
-                MotionEvent.ACTION_DOWN -> {
-                    var gridCoords = gridView.getGridCoords(motionEvent.x, motionEvent.y)
-                    if (topGridCoordsValid(gridCoords)) {
-                        touchCoords = gridCoords
-                        touchModeIsAdd = !topGridCoordsFilled(gridCoords)
-                        if (touchModeIsAdd) {
-                            addCoords(gridCoords)
-                        } else {
-                            subtractCoords(gridCoords)
-                        }
-                    }
-                }
-                MotionEvent.ACTION_UP -> {
-                    touchCoords = null
-                }
-                MotionEvent.ACTION_CANCEL -> {
-                    touchCoords = null
-                }
-                MotionEvent.ACTION_MOVE -> {
-                    var gridCoords = gridView.getGridCoords(motionEvent.x, motionEvent.y)
-                    if (topGridCoordsValid(gridCoords)) {
-                        if (touchCoords == null) {
+            if (allowGameActions()) {
+                var gridView = view as GridBinderView
+                when (motionEvent.actionMasked) {
+                    MotionEvent.ACTION_DOWN -> {
+                        //Figure out where the touch happened and if this is to be an additive or subractive touch event
+                        var gridCoords = gridView.getGridCoords(motionEvent.x, motionEvent.y)
+                        if (topGridCoordsValid(gridCoords)) {
                             touchCoords = gridCoords
                             touchModeIsAdd = !topGridCoordsFilled(gridCoords)
+                            if (touchModeIsAdd) {
+                                addCoords(gridCoords)
+                            } else {
+                                subtractCoords(gridCoords)
+                            }
                         }
-                        if (touchModeIsAdd) {
-                            addCoords(gridCoords)
-                        } else {
-                            subtractCoords(gridCoords)
+                    }
+                    MotionEvent.ACTION_UP -> {
+                        touchCoords = null
+                    }
+                    MotionEvent.ACTION_CANCEL -> {
+                        touchCoords = null
+                    }
+                    MotionEvent.ACTION_MOVE -> {
+                        //If we've moved, we either add or subtract depending on the down event
+                        var gridCoords = gridView.getGridCoords(motionEvent.x, motionEvent.y)
+                        if (topGridCoordsValid(gridCoords)) {
+                            if (touchCoords == null) {
+                                touchCoords = gridCoords
+                                touchModeIsAdd = !topGridCoordsFilled(gridCoords)
+                            }
+                            if (touchModeIsAdd) {
+                                addCoords(gridCoords)
+                            } else {
+                                subtractCoords(gridCoords)
+                            }
                         }
                     }
                 }
+                true
+            } else {
+                false
             }
-            true
         }
 
+        //This is just a temporary way to start/restart the game until we get real controls hooked up
         gridbinderview_bottom.setOnClickListener {
+            if (level != 1) {
+                unsubscribeFromTicker()
+                level = 1
+                initGridsForLevel(level)
+            }
             subscribeToTicker()
         }
 
     }
 
 
+    /**
+     * This is effectively the game loop, it does count downs and what not
+     */
     fun subscribeToTicker() {
         unsubscribeFromTicker()
 
-        var seconds = 3
-
+        var seconds = secondForLevel(level)
         subTicker = Observable.interval(1, TimeUnit.SECONDS)
                 .filter({ l -> allowGameActions() })//So we don't do anything
                 .take(seconds + 1)
@@ -126,6 +147,7 @@ class GameActivity : AppCompatActivity() {
                                     subscribeToTicker()
                                 }
                             })
+                            actionAnimator = anim
                             anim.start()
 
                         }
@@ -134,11 +156,20 @@ class GameActivity : AppCompatActivity() {
 
     }
 
+    /**
+     * Stop the game loop
+     */
     fun unsubscribeFromTicker() {
         subTicker?.let { if (!it.isUnsubscribed) it.unsubscribe() }
     }
 
+    /**
+     * Should we allow the user to perform actions?
+     */
     fun allowGameActions(): Boolean {
+        if (actionAnimator?.isRunning() ?: false) {
+            return false
+        }
         return true
     }
 
@@ -185,7 +216,19 @@ class GameActivity : AppCompatActivity() {
         return coords.first >= 0 && coords.first < topGrid.width && coords.second >= 0 && coords.second < topGrid.height
     }
 
+    /**
+     * Init the grids according to the level and bind them to the views
+     */
+    fun initGridsForLevel(lvl: Int) {
+        topGrid = initTopGrid(gridWidthForLevel(lvl), gridHeightForLevel(lvl))
+        bottomGrid = initBottomGrid(gridWidthForLevel(lvl), gridHeightForLevel(lvl))
+        gridbinderview_top.grid = topGrid
+        gridbinderview_bottom.grid = bottomGrid
+    }
 
+    /**
+     * Generate a grid to use for the bottom in the starting position
+     */
     fun initBottomGrid(width: Int, height: Int): Grid {
         var grid = Grid(width, height)
         var minFill = -1
@@ -217,6 +260,9 @@ class GameActivity : AppCompatActivity() {
         return grid
     }
 
+    /**
+     * Generate a grid to use for the top in the starting position
+     */
     fun initTopGrid(width: Int, height: Int): Grid {
         var grid = Grid(width, height)
         for (i in 0..width - 1) {
@@ -294,10 +340,8 @@ class GameActivity : AppCompatActivity() {
                 grid_container.alpha = 1f
 
                 //Dimens should come from levels
-                topGrid = initTopGrid(4, 2)
-                gridbinderview_top.grid = topGrid
-                bottomGrid = initBottomGrid(4, 2)
-                gridbinderview_bottom.grid = bottomGrid
+                level++
+                initGridsForLevel(level)
             }
         })
         animGridsOut.setDuration(450)
@@ -307,16 +351,21 @@ class GameActivity : AppCompatActivity() {
         return animCombined
     }
 
+    /**
+     * Generate the animator that is used to flash the count down clock for the level
+     */
     fun genCountDownOutAnim(bgColor: Int): Animator {
-
+        //We flash the background to make things seem more intense
+        //Use an ArgbEvaluator to support older versions of android (instead of ValueAnimator.ofArgb())
         var argb = ArgbEvaluator()
-        var startColor : Int = bgColor
-        var endColor : Int = Color.TRANSPARENT
-        var bgAnim = ValueAnimator.ofFloat(0f,1f)
+        var startColor: Int = bgColor
+        var endColor: Int = Color.TRANSPARENT
+        var bgAnim = ValueAnimator.ofFloat(0f, 1f)
         bgAnim.addUpdateListener {
-            countdown_container.setBackgroundColor(argb.evaluate(it.animatedValue as Float, startColor,endColor) as Int)
+            countdown_container.setBackgroundColor(argb.evaluate(it.animatedValue as Float, startColor, endColor) as Int)
         }
 
+        //Scale and fade the current count down number
         var endScale = 0.2f
         var countdownZoomX = ObjectAnimator.ofFloat(countdown_tv, "scaleX", 1f, endScale)
         var countdownZoomY = ObjectAnimator.ofFloat(countdown_tv, "scaleY", 1f, endScale)
@@ -326,5 +375,26 @@ class GameActivity : AppCompatActivity() {
         animCountdownOut.interpolator = AccelerateInterpolator()
         animCountdownOut.setDuration(700)
         return animCountdownOut
+    }
+
+    /**
+     * How tall should our grids be given the arg level
+     */
+    fun gridHeightForLevel(lvl: Int): Int {
+        return (lvl + 1) / 2 + 1
+    }
+
+    /**
+     * How wide should our grids be given the arg level
+     */
+    fun gridWidthForLevel(lvl: Int): Int {
+        return 4 + (lvl - 1) * 2
+    }
+
+    /**
+     * How much time in seconds should we have to solve the puzzle given the arg level
+     */
+    fun secondForLevel(lvl: Int): Int {
+        return lvl * 2 + 1
     }
 }
