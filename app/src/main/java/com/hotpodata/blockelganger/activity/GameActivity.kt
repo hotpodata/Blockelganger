@@ -3,8 +3,11 @@ package com.hotpodata.blockelganger.activity
 import android.animation.*
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.PorterDuff
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import android.view.Menu
+import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.AccelerateInterpolator
@@ -30,13 +33,22 @@ class GameActivity : AppCompatActivity() {
     var touchModeIsAdd = false
 
     var subTicker: Subscription? = null
+    var spentTicks = 0L
     var random = Random()
     var actionAnimator: Animator? = null
+    var countDownAnimator: Animator? = null
 
     var level = 0
         set(lvl: Int) {
             field = lvl
             supportActionBar?.subtitle = getString(R.string.level_template, lvl)
+        }
+
+    var paused = false
+        set(pause: Boolean) {
+            field = pause
+            pause_container.visibility = if (pause) View.VISIBLE else View.INVISIBLE
+            supportInvalidateOptionsMenu()
         }
 
 
@@ -130,25 +142,100 @@ class GameActivity : AppCompatActivity() {
     }
 
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        super.onCreateOptionsMenu(menu)
+        menuInflater.inflate(R.menu.game_menu, menu)
+        return true
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        super.onPrepareOptionsMenu(menu)
+        menu?.findItem(R.id.play)?.let {
+            it.icon.setColorFilter(resources.getColor(R.color.white), PorterDuff.Mode.SRC_ATOP)
+            it.setEnabled(paused)
+            it.setVisible(paused)
+        }
+        menu?.findItem(R.id.pause)?.let {
+            it.icon.setColorFilter(resources.getColor(R.color.white), PorterDuff.Mode.SRC_ATOP)
+            it.setEnabled(!paused)
+            it.setVisible(!paused)
+        }
+        return true
+    }
+
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        item?.let {
+            if (when (item.itemId) {
+                R.id.play -> {
+                    actionResumeGame()
+                    true
+                }
+                R.id.pause -> {
+                    actionPauseGame()
+                    true
+                }
+                else -> false
+            }) {
+                Timber.d("RETURNING TRUE, BECAUSE SYNTAX!")
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+
+    fun actionPauseGame() {
+        unsubscribeFromTicker()
+        paused = true
+        if (actionAnimator?.isRunning ?: false) {
+            actionAnimator?.pause()
+        }
+        if (countDownAnimator?.isRunning ?: false) {
+            countDownAnimator?.pause()
+        }
+    }
+
+    fun actionResumeGame() {
+        paused = false
+        if (actionAnimator?.isPaused ?: false) {
+            actionAnimator?.resume()//This resubscribes at the end
+        } else {
+            if (countDownAnimator?.isPaused ?: false) {
+                countDownAnimator?.addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator?) {
+                        subscribeToTicker(spentTicks.toInt())
+                    }
+                })
+                countDownAnimator?.resume()
+            } else {
+                subscribeToTicker(spentTicks.toInt())
+            }
+        }
+    }
+
     /**
      * This is effectively the game loop, it does count downs and what not
      */
-    fun subscribeToTicker() {
+    fun subscribeToTicker(spentSeconds: Int = 0) {
         unsubscribeFromTicker()
 
         var seconds = secondForLevel(level)
-        subTicker = Observable.interval(1, TimeUnit.SECONDS)
+        spentTicks = spentSeconds.toLong()
+        subTicker = Observable.interval(1, TimeUnit.SECONDS).startWith(-1L)
                 .filter({ l -> allowGameActions() })//So we don't do anything
-                .take(seconds + 1)
+                .take(1 + seconds - spentTicks.toInt())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         {
                             l ->
-                            if (l < seconds) {
-                                countdown_tv.text = "" + (seconds - l)
+                            if (spentTicks < seconds) {
+                                countdown_tv.text = "" + (seconds - spentTicks)
                                 var anim = genCountDownOutAnim(resources.getColor(R.color.countdown_flash_color))
+                                countDownAnimator = anim
                                 anim.start()
                             }
+                            spentTicks++
                         }
                         ,
                         {
@@ -183,7 +270,7 @@ class GameActivity : AppCompatActivity() {
      * Should we allow the user to perform actions?
      */
     fun allowGameActions(): Boolean {
-        if (actionAnimator?.isRunning() ?: false) {
+        if (paused || actionAnimator?.isRunning() ?: false) {
             return false
         }
         return true

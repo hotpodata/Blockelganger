@@ -4,4 +4,9 @@
 
     <string name="info_top">This block must be carved with your finger to fit together with the shape on the bottom.</string>
     <string name="info_bottom">A new shape will be generated here every turn!</string>
+
+    <string name="paused">Paused</string>
+    <string name="game_over">Game Over</string>
+    <string name="pause">Pause</string>
+    <string name="play">Play</string>
 </resources>
