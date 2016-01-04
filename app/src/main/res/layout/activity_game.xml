@@ -40,11 +40,18 @@
             android:background="#E3F2FD">
 
             <com.hotpodata.blocklib.view.GridBinderView
+                android:id="@+id/gridbinderview_center"
+                android:layout_width="match_parent"
+                android:layout_height="192dp"
+                android:layout_gravity="center_vertical"
+                android:visibility="invisible"
+                android:elevation="0dp" />
+
+            <com.hotpodata.blocklib.view.GridBinderView
                 android:id="@+id/gridbinderview_top"
                 android:layout_width="match_parent"
                 android:layout_height="96dp"
                 android:layout_gravity="top"
-                android:background="#66660000"
                 android:elevation="8dp" />
 
             <com.hotpodata.blocklib.view.GridBinderView
@@ -52,7 +59,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="96dp"
                 android:layout_gravity="bottom"
-                android:background="#66006600"
                 android:elevation="8dp" />
 
         </FrameLayout>
