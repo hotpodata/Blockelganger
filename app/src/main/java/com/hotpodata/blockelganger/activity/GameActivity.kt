@@ -16,6 +16,7 @@ import com.hotpodata.blocklib.Grid
 import com.hotpodata.blocklib.GridHelper
 import com.hotpodata.blocklib.view.GridBinderView
 import kotlinx.android.synthetic.main.activity_game.*
+import timber.log.Timber
 import java.util.*
 
 class GameActivity : AppCompatActivity() {
@@ -136,11 +137,30 @@ class GameActivity : AppCompatActivity() {
 
     fun initBottomGrid(width: Int, height: Int): Grid {
         var grid = Grid(width, height)
-        for (i in 0..width - 1) {
-            var fill = random.nextInt(height)
-            for (j in height - 1 downTo fill) {
-                grid.put(i, j, true)
+        var minFill = -1
+        var maxFill = -1
+        while(minFill == maxFill) {//This is so we dont end up with flat shapes
+            minFill = -1
+            maxFill = -1
+            for (i in 0..width - 1) {
+                var fill = random.nextInt(height)
+                if(minFill < 0 || maxFill < 0){
+                    minFill = fill
+                    maxFill = fill
+                }else{
+                    if(fill > maxFill){
+                        maxFill = fill
+                    }
+                    if(fill < minFill){
+                        minFill = fill
+                    }
+                }
+                for (j in height - 1 downTo fill) {
+                    Timber.d("filling j:" + j + " height-1:" + (height - 1) + " fill:" + fill + " minFill:" + minFill + " maxFill:" + maxFill)
+                    grid.put(i, j, true)
+                }
             }
+
         }
         return grid
     }
