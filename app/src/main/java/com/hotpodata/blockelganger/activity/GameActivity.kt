@@ -1,9 +1,6 @@
 package com.hotpodata.blockelganger.activity
 
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
-import android.animation.AnimatorSet
-import android.animation.ObjectAnimator
+import android.animation.*
 import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Bundle
@@ -16,8 +13,12 @@ import com.hotpodata.blocklib.Grid
 import com.hotpodata.blocklib.GridHelper
 import com.hotpodata.blocklib.view.GridBinderView
 import kotlinx.android.synthetic.main.activity_game.*
+import rx.Observable
+import rx.Subscription
+import rx.android.schedulers.AndroidSchedulers
 import timber.log.Timber
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 class GameActivity : AppCompatActivity() {
 
@@ -27,7 +28,9 @@ class GameActivity : AppCompatActivity() {
     var touchCoords: Pair<Int, Int>? = null
     var touchModeIsAdd = false
 
+    var subTicker: Subscription? = null
     var random = Random()
+    var actionAnimator: Animator? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -86,9 +89,57 @@ class GameActivity : AppCompatActivity() {
         }
 
         gridbinderview_bottom.setOnClickListener {
-            genSmashAnim().start()
+            subscribeToTicker()
         }
 
+    }
+
+
+    fun subscribeToTicker() {
+        unsubscribeFromTicker()
+
+        var seconds = 3
+
+        subTicker = Observable.interval(1, TimeUnit.SECONDS)
+                .filter({ l -> allowGameActions() })//So we don't do anything
+                .take(seconds + 1)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        {
+                            l ->
+                            if (l < seconds) {
+                                countdown_tv.text = "" + (seconds - l)
+                                var anim = genCountDownOutAnim(Color.YELLOW)
+                                anim.start()
+                            }
+                        }
+                        ,
+                        {
+                            ex ->
+                            Timber.e(ex, "Fail!")
+                        },
+                        {
+
+                            var anim = genSmashAnim()
+                            anim.addListener(object : AnimatorListenerAdapter() {
+                                override fun onAnimationEnd(animation: Animator?) {
+                                    subscribeToTicker()
+                                }
+                            })
+                            anim.start()
+
+                        }
+
+                )
+
+    }
+
+    fun unsubscribeFromTicker() {
+        subTicker?.let { if (!it.isUnsubscribed) it.unsubscribe() }
+    }
+
+    fun allowGameActions(): Boolean {
+        return true
     }
 
 
@@ -139,19 +190,20 @@ class GameActivity : AppCompatActivity() {
         var grid = Grid(width, height)
         var minFill = -1
         var maxFill = -1
-        while(minFill == maxFill) {//This is so we dont end up with flat shapes
+        while (minFill == maxFill) {
+            //This is so we dont end up with flat shapes
             minFill = -1
             maxFill = -1
             for (i in 0..width - 1) {
                 var fill = random.nextInt(height)
-                if(minFill < 0 || maxFill < 0){
+                if (minFill < 0 || maxFill < 0) {
                     minFill = fill
                     maxFill = fill
-                }else{
-                    if(fill > maxFill){
+                } else {
+                    if (fill > maxFill) {
                         maxFill = fill
                     }
-                    if(fill < minFill){
+                    if (fill < minFill) {
                         minFill = fill
                     }
                 }
@@ -251,7 +303,28 @@ class GameActivity : AppCompatActivity() {
         animGridsOut.setDuration(450)
 
         var animCombined = AnimatorSet()
-        animCombined.playSequentially(animMoves,animGridsOut,animReenter)
+        animCombined.playSequentially(animMoves, animGridsOut, animReenter)
         return animCombined
+    }
+
+    fun genCountDownOutAnim(bgColor: Int): Animator {
+
+        var argb = ArgbEvaluator()
+        var startColor : Int = bgColor
+        var endColor : Int = Color.TRANSPARENT
+        var bgAnim = ValueAnimator.ofFloat(0f,1f)
+        bgAnim.addUpdateListener {
+            countdown_container.setBackgroundColor(argb.evaluate(it.animatedValue as Float, startColor,endColor) as Int)
+        }
+
+        var endScale = 0.2f
+        var countdownZoomX = ObjectAnimator.ofFloat(countdown_tv, "scaleX", 1f, endScale)
+        var countdownZoomY = ObjectAnimator.ofFloat(countdown_tv, "scaleY", 1f, endScale)
+        var countdownAlpha = ObjectAnimator.ofFloat(countdown_tv, "alpha", 1f, 0f)
+        var animCountdownOut = AnimatorSet()
+        animCountdownOut.playTogether(countdownZoomX, countdownZoomY, countdownAlpha, bgAnim)
+        animCountdownOut.interpolator = AccelerateInterpolator()
+        animCountdownOut.setDuration(700)
+        return animCountdownOut
     }
 }
