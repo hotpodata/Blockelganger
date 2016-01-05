@@ -322,7 +322,7 @@ class GameActivity : AppCompatActivity() {
             if (countDownAnimator?.isRunning ?: false) {
                 countDownAnimator?.pause()
             }
-            if(gridHelpTextAnim?.isStarted ?: false){
+            if (gridHelpTextAnim?.isStarted ?: false) {
                 gridHelpTextAnim?.pause()
             }
         }
@@ -347,7 +347,7 @@ class GameActivity : AppCompatActivity() {
                     subscribeToTicker(spentTicks.toInt())
                 }
 
-                if(gridHelpTextAnim?.isPaused ?: false){
+                if (gridHelpTextAnim?.isPaused ?: false) {
                     gridHelpTextAnim?.resume()
                 }
             }
@@ -467,13 +467,16 @@ class GameActivity : AppCompatActivity() {
      */
     fun initBottomGrid(width: Int, height: Int): Grid {
         var grid = Grid(width, height)
-        while (grid.rowFull(0) || grid.rowEmpty(0)) {
+
+        while ((width > 1 && grid.rowFull(0)) || grid.rowEmpty(0)) {
             for (i in grid.slots.indices) {
-                for (j in grid.slots[i].indices.reversed()) {
-                    if (j == grid.slots[i].size - 1 || random.nextBoolean()) {
+                val dip = random.nextInt(grid.slots[i].size)
+                Timber.d("Dip:" + dip)
+                for (j in grid.slots[i].indices) {
+                    if (j >= dip ) {
                         grid.put(i, j, true)
                     } else {
-                        break
+                        grid.put(i, j, null)
                     }
                 }
             }
@@ -683,7 +686,7 @@ class GameActivity : AppCompatActivity() {
     }
 
 
-    fun setGridHelpTextShowing(showing: Boolean, delay:Long = 0) {
+    fun setGridHelpTextShowing(showing: Boolean, delay: Long = 0) {
         if (showing) {
             gridHelpTextAnim?.cancel()
 
