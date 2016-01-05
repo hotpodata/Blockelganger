@@ -169,7 +169,7 @@ class GameActivity : AppCompatActivity() {
             actionResetGame()
         }
 
-        pause_start_over_btn.setOnClickListener{
+        pause_start_over_btn.setOnClickListener {
             actionResetGame()
         }
 
@@ -454,31 +454,16 @@ class GameActivity : AppCompatActivity() {
      */
     fun initBottomGrid(width: Int, height: Int): Grid {
         var grid = Grid(width, height)
-        var minFill = -1
-        var maxFill = -1
-        while (minFill == maxFill) {
-            //This is so we dont end up with flat shapes
-            minFill = -1
-            maxFill = -1
-            for (i in 0..width - 1) {
-                var fill = random.nextInt(height)
-                if (minFill < 0 || maxFill < 0) {
-                    minFill = fill
-                    maxFill = fill
-                } else {
-                    if (fill > maxFill) {
-                        maxFill = fill
+        while (grid.rowFull(0) || grid.rowEmpty(0)) {
+            for (i in grid.slots.indices) {
+                for (j in grid.slots[i].indices.reversed()) {
+                    if (j == grid.slots[i].size - 1 || random.nextBoolean()) {
+                        grid.put(i, j, true)
+                    } else {
+                        break
                     }
-                    if (fill < minFill) {
-                        minFill = fill
-                    }
-                }
-                for (j in height - 1 downTo fill) {
-                    Timber.d("filling j:" + j + " height-1:" + (height - 1) + " fill:" + fill + " minFill:" + minFill + " maxFill:" + maxFill)
-                    grid.put(i, j, true)
                 }
             }
-
         }
         return grid
     }
