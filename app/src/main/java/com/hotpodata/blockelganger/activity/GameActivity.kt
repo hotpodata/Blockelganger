@@ -77,13 +77,16 @@ class GameActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_game)
+
+        //Set up the actionbar
         setSupportActionBar(toolbar);
-        setUpLeftDrawer()
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setHomeButtonEnabled(true)
         supportActionBar?.setShowHideAnimationEnabled(true)
 
 
+        //Set up the drawer
+        setUpLeftDrawer()
         drawerToggle = object : ActionBarDrawerToggle(this, drawer_layout, R.string.drawer_open, R.string.drawer_closed) {
             override fun onDrawerOpened(drawerView: View?) {
                 if (gamestarted && !gameover) {
@@ -163,7 +166,6 @@ class GameActivity : AppCompatActivity() {
         }
 
         //Setup our click actions
-
         play_btn.setOnClickListener {
             actionStartGame()
         }
@@ -251,6 +253,9 @@ class GameActivity : AppCompatActivity() {
     }
 
 
+    /**
+     * Updates some of the pause/play/gameover/start visibilites and menu items
+     */
     fun updateGameStateVisibilities() {
         var gameoverVis = gameover
         var pauseVis = !gameover && paused && gamestarted
@@ -261,6 +266,9 @@ class GameActivity : AppCompatActivity() {
         supportInvalidateOptionsMenu()
     }
 
+    /**
+     * Sets up the left drawer adapter and adds it to the recyclerview
+     */
     fun setUpLeftDrawer() {
         if (sideBarAdapter == null) {
             sideBarAdapter = with(SideBarAdapter(this)) {
@@ -272,6 +280,10 @@ class GameActivity : AppCompatActivity() {
         }
     }
 
+
+    /**
+     * This starts the game
+     */
     fun actionStartGame() {
         var infoOutAnim = genHideInfoAnim()
         var startSmashAnim = genSmashAnim()
@@ -286,6 +298,9 @@ class GameActivity : AppCompatActivity() {
         startAnim.start()
     }
 
+    /**
+     * This resets the game
+     */
     fun actionResetGame() {
         unsubscribeFromTicker()
         if (actionAnimator?.isRunning ?: false) {
@@ -312,6 +327,9 @@ class GameActivity : AppCompatActivity() {
         gridbinderview_bottom.grid = bottomGrid
     }
 
+    /**
+     * Pause the game
+     */
     fun actionPauseGame() {
         if (!paused) {
             unsubscribeFromTicker()
@@ -328,6 +346,9 @@ class GameActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Resume a paused game
+     */
     fun actionResumeGame() {
         if (paused) {
             paused = false
@@ -662,6 +683,9 @@ class GameActivity : AppCompatActivity() {
         return animCountdownOut
     }
 
+    /**
+     * Generate an animator that makes the play button fly away
+     */
     fun genHideInfoAnim(): Animator {
         //Play btn anims
         var endScale = 0.1f
@@ -686,6 +710,9 @@ class GameActivity : AppCompatActivity() {
     }
 
 
+    /**
+     * This sets the visibility of the help text, and wiggles it if it's showing
+     */
     fun setGridHelpTextShowing(showing: Boolean, delay: Long = 0) {
         if (showing) {
             gridHelpTextAnim?.cancel()
