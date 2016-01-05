@@ -9,6 +9,8 @@
     <string name="game_over">Game Over!</string>
     <string name="pause">Pause</string>
     <string name="play">Play</string>
+    <string name="continue_game">Continue Game</string>
+    <string name="start_over">Start Over</string>
 
 
     <string name="drawer_open">Drawer Open</string>

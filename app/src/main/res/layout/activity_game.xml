@@ -135,7 +135,7 @@
                 android:layout_height="match_parent"
                 android:background="#AA000000"
                 android:gravity="center_vertical"
-                android:orientation="horizontal"
+                android:orientation="vertical"
                 android:visibility="invisible">
 
                 <TextView
@@ -152,6 +152,37 @@
                     android:textSize="96dp"
                     android:textStyle="bold" />
 
+                <TextView
+                    android:id="@+id/pause_start_over_btn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/keyline_one"
+                    android:background="@color/info_shade"
+                    android:gravity="center"
+                    android:paddingLeft="@dimen/keyline_two"
+                    android:paddingRight="@dimen/keyline_two"
+                    android:text="@string/start_over"
+                    android:textAllCaps="true"
+                    android:textColor="@color/white"
+                    android:textSize="24dp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/pause_continue_btn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/keyline_two"
+                    android:background="@color/info_shade"
+                    android:gravity="center"
+                    android:paddingLeft="@dimen/keyline_two"
+                    android:paddingRight="@dimen/keyline_two"
+                    android:text="@string/continue_game"
+                    android:textAllCaps="true"
+                    android:textColor="@color/white"
+                    android:textSize="24dp"
+                    android:textStyle="bold" />
+
+
             </LinearLayout>
 
             <LinearLayout
@@ -160,14 +191,13 @@
                 android:layout_height="match_parent"
                 android:background="#AA000000"
                 android:gravity="center_vertical"
-                android:orientation="horizontal"
+                android:orientation="vertical"
                 android:visibility="invisible">
 
                 <TextView
                     android:id="@+id/game_over_tv"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@color/info_shade"
                     android:gravity="center"
                     android:paddingLeft="@dimen/keyline_one"
                     android:paddingRight="@dimen/keyline_one"
@@ -176,6 +206,21 @@
                     android:textColor="@color/white"
                     android:textSize="96dp"
                     android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/game_over_start_over_btn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/keyline_one"
+                    android:gravity="center"
+                    android:paddingLeft="@dimen/keyline_two"
+                    android:paddingRight="@dimen/keyline_two"
+                    android:text="@string/start_over"
+                    android:textAllCaps="true"
+                    android:textColor="@color/white"
+                    android:textSize="24dp"
+                    android:textStyle="bold" />
+
 
             </LinearLayout>
 

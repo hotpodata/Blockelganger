@@ -6,6 +6,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.os.Bundle
+import android.support.v4.widget.DrawerLayout
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
@@ -60,11 +61,12 @@ class GameActivity : AppCompatActivity() {
     var gameover = false
         set(gOver: Boolean) {
             field = gOver
+            gamestarted = false
             updateGameStateVisibilities()
         }
 
     var gamestarted = false
-        set(started: Boolean){
+        set(started: Boolean) {
             field = started
             updateGameStateVisibilities()
         }
@@ -73,8 +75,28 @@ class GameActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_game)
-
         setSupportActionBar(toolbar);
+        setUpLeftDrawer()
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setHomeButtonEnabled(true)
+        supportActionBar?.setShowHideAnimationEnabled(true)
+
+
+        drawerToggle = object : ActionBarDrawerToggle(this, drawer_layout, R.string.drawer_open, R.string.drawer_closed) {
+            override fun onDrawerOpened(drawerView: View?) {
+                if (gamestarted && !gameover) {
+                    actionPauseGame()
+                }
+                drawer_layout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+            }
+
+            override fun onDrawerClosed(drawerView: View?) {
+                drawer_layout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+            }
+        }
+        drawer_layout.setDrawerListener(drawerToggle)
+        drawer_layout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+
 
         //Set up how to draw the blocks
         val topColor = getResources().getColor(R.color.top_grid)
@@ -89,10 +111,6 @@ class GameActivity : AppCompatActivity() {
                 canvas.drawColor(btmColor)
             }
         }
-
-        //Set up grids
-        gridbinderview_top.grid = topGrid
-        gridbinderview_bottom.grid = bottomGrid
 
         //Set up the touch listener for the top grid
         gridbinderview_top.setOnTouchListener {
@@ -141,30 +159,26 @@ class GameActivity : AppCompatActivity() {
             }
         }
 
-        //This is just a temporary way to start/restart the game until we get real controls hooked up
+        //Setup our click actions
+
         play_btn.setOnClickListener {
-            unsubscribeFromTicker()
-            level = 0
+            actionStartGame()
+        }
 
-            var infoOutAnim = genHideInfoAnim()
-            var startSmashAnim = genSmashAnim()
-            var startAnim = AnimatorSet()
-            startAnim.playSequentially(infoOutAnim, startSmashAnim)
-            actionAnimator = startAnim
-            startAnim.start()
+        game_over_start_over_btn.setOnClickListener {
+            actionResetGame()
+        }
+
+        pause_start_over_btn.setOnClickListener{
+            actionResetGame()
+        }
+
+        pause_continue_btn.setOnClickListener {
+            actionResumeGame()
         }
 
 
-        drawerToggle = object : ActionBarDrawerToggle(this, drawer_layout, R.string.drawer_open, R.string.drawer_closed) {
-            override fun onDrawerOpened(drawerView: View?) {
-                actionPauseGame()
-            }
-        }
-        drawer_layout.setDrawerListener(drawerToggle)
-        setUpLeftDrawer()
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setHomeButtonEnabled(true)
-        supportActionBar?.setShowHideAnimationEnabled(true)
+        actionResetGame()
     }
 
 
@@ -177,13 +191,13 @@ class GameActivity : AppCompatActivity() {
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         menu?.findItem(R.id.play)?.let {
             it.icon.setColorFilter(resources.getColor(R.color.white), PorterDuff.Mode.SRC_ATOP)
-            it.setEnabled(paused && !gameover)
-            it.setVisible(paused && !gameover)
+            it.setEnabled(paused && !gameover && gamestarted)
+            it.setVisible(paused && !gameover && gamestarted)
         }
         menu?.findItem(R.id.pause)?.let {
             it.icon.setColorFilter(resources.getColor(R.color.white), PorterDuff.Mode.SRC_ATOP)
-            it.setEnabled(!paused && !gameover)
-            it.setVisible(!paused && !gameover)
+            it.setEnabled(!paused && !gameover && gamestarted)
+            it.setVisible(!paused && !gameover && gamestarted)
         }
         return super.onPrepareOptionsMenu(menu)
     }
@@ -236,9 +250,11 @@ class GameActivity : AppCompatActivity() {
 
     fun updateGameStateVisibilities() {
         var gameoverVis = gameover
-        var pauseVis = !gameover && paused
+        var pauseVis = !gameover && paused && gamestarted
+        var startVis = !gamestarted && !gameover
         game_over_container.visibility = if (gameoverVis) View.VISIBLE else View.INVISIBLE
         pause_container.visibility = if (pauseVis) View.VISIBLE else View.INVISIBLE
+        start_container.visibility = if (startVis) View.VISIBLE else View.INVISIBLE
         supportInvalidateOptionsMenu()
     }
 
@@ -251,6 +267,45 @@ class GameActivity : AppCompatActivity() {
             left_drawer.adapter = sideBarAdapter
             left_drawer.layoutManager = LinearLayoutManager(this)
         }
+    }
+
+    fun actionStartGame() {
+        var infoOutAnim = genHideInfoAnim()
+        var startSmashAnim = genSmashAnim()
+        var startAnim = AnimatorSet()
+        startAnim.playSequentially(infoOutAnim, startSmashAnim)
+        startAnim.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationEnd(animation: Animator?) {
+                gamestarted = true
+            }
+        })
+        actionAnimator = startAnim
+        startAnim.start()
+    }
+
+    fun actionResetGame() {
+        unsubscribeFromTicker()
+        if (actionAnimator?.isRunning ?: false) {
+            actionAnimator?.cancel()
+        }
+        if (countDownAnimator?.isRunning ?: false) {
+            countDownAnimator?.cancel()
+        }
+
+        gridbinderview_top.translationY = 0f
+        gridbinderview_bottom.translationY = 0f
+
+        level = 0
+        spentTicks = 0L
+        gameover = false
+        paused = false
+        gamestarted = false
+        topGrid = initFullGrid(1, 1)
+        bottomGrid = initFullGrid(1, 1)
+
+        //Set up grids
+        gridbinderview_top.grid = topGrid
+        gridbinderview_bottom.grid = bottomGrid
     }
 
     fun actionPauseGame() {
@@ -315,11 +370,9 @@ class GameActivity : AppCompatActivity() {
                             Timber.e(ex, "Fail!")
                         },
                         {
-
                             var anim = genSmashAnim()
                             actionAnimator = anim
                             anim.start()
-
                         }
 
                 )
@@ -337,7 +390,7 @@ class GameActivity : AppCompatActivity() {
      * Should we allow the user to perform actions?
      */
     fun allowGameActions(): Boolean {
-        if (paused || actionAnimator?.isRunning() ?: false) {
+        if (!gamestarted || paused || actionAnimator?.isRunning() ?: false) {
             return false
         }
         return true
@@ -615,6 +668,16 @@ class GameActivity : AppCompatActivity() {
         var anim = AnimatorSet()
         anim.playTogether(infoTopY, infoBtmY, playBtnOut)
         anim.setDuration(450)
+        anim.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationEnd(animation: Animator?) {
+                start_container.visibility = View.INVISIBLE
+                info_top.translationY = 0f
+                info_bottom.translationY = 0f
+                play_btn.scaleX = 1f
+                play_btn.scaleY = 1f
+                play_btn.alpha = 1f
+            }
+        })
         return anim
     }
 
