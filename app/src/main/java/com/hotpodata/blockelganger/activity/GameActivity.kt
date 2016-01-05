@@ -186,6 +186,13 @@ class GameActivity : AppCompatActivity() {
         actionResetGame()
     }
 
+    override fun onPause(){
+        super.onPause()
+        if(gamestarted){
+            paused = true
+        }
+    }
+
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         super.onCreateOptionsMenu(menu)
