@@ -16,6 +16,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
+import android.view.animation.OvershootInterpolator
 import com.hotpodata.blockelganger.R
 import com.hotpodata.blockelganger.adapter.SideBarAdapter
 import com.hotpodata.blocklib.Grid
@@ -42,6 +43,7 @@ class GameActivity : AppCompatActivity() {
     var random = Random()
     var actionAnimator: Animator? = null
     var countDownAnimator: Animator? = null
+    var gridHelpTextAnim: Animator? = null
 
     var sideBarAdapter: SideBarAdapter? = null
     var drawerToggle: ActionBarDrawerToggle? = null
@@ -116,6 +118,7 @@ class GameActivity : AppCompatActivity() {
         gridbinderview_top.setOnTouchListener {
             view, motionEvent ->
             if (allowGameActions()) {
+                setGridHelpTextShowing(false)
                 var gridView = view as GridBinderView
                 when (motionEvent.actionMasked) {
                     MotionEvent.ACTION_DOWN -> {
@@ -291,6 +294,7 @@ class GameActivity : AppCompatActivity() {
         if (countDownAnimator?.isRunning ?: false) {
             countDownAnimator?.cancel()
         }
+        setGridHelpTextShowing(false)
 
         gridbinderview_top.translationY = 0f
         gridbinderview_bottom.translationY = 0f
@@ -318,6 +322,9 @@ class GameActivity : AppCompatActivity() {
             if (countDownAnimator?.isRunning ?: false) {
                 countDownAnimator?.pause()
             }
+            if(gridHelpTextAnim?.isStarted ?: false){
+                gridHelpTextAnim?.pause()
+            }
         }
     }
 
@@ -334,8 +341,14 @@ class GameActivity : AppCompatActivity() {
                         }
                     })
                     countDownAnimator?.resume()
+
+
                 } else {
                     subscribeToTicker(spentTicks.toInt())
+                }
+
+                if(gridHelpTextAnim?.isPaused ?: false){
+                    gridHelpTextAnim?.resume()
                 }
             }
         }
@@ -579,6 +592,7 @@ class GameActivity : AppCompatActivity() {
                     grid_container.scaleY = 1f
                     grid_container.alpha = 1f
 
+
                     //Dimens should come from levels
                     level++
                     initGridsForLevel(level)
@@ -586,11 +600,19 @@ class GameActivity : AppCompatActivity() {
 
                 override fun onAnimationEnd(animation: Animator?) {
                     subscribeToTicker()
+                    if (level == 1) {
+                        setGridHelpTextShowing(true)
+                    }
                 }
             })
             animGridsOut.setDuration(450)
             animCombined.playSequentially(animMoves, animGridsOut, animReenter)
         }
+        animCombined.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationStart(animation: Animator?) {
+                setGridHelpTextShowing(false)
+            }
+        })
         return animCombined
     }
 
@@ -638,10 +660,6 @@ class GameActivity : AppCompatActivity() {
     }
 
     fun genHideInfoAnim(): Animator {
-        //Text anims
-        var infoTopY = ObjectAnimator.ofFloat(info_top, "translationY", 0f, -info_top.height.toFloat())
-        var infoBtmY = ObjectAnimator.ofFloat(info_bottom, "translationY", 0f, info_bottom.height.toFloat())
-
         //Play btn anims
         var endScale = 0.1f
         var playScaleX = ObjectAnimator.ofFloat(play_btn, "scaleX", 1f, endScale)
@@ -651,19 +669,52 @@ class GameActivity : AppCompatActivity() {
         playBtnOut.playTogether(playScaleX, playScaleY, playAlpha)
 
         var anim = AnimatorSet()
-        anim.playTogether(infoTopY, infoBtmY, playBtnOut)
-        anim.setDuration(450)
+        anim.playTogether(playBtnOut)
+        anim.setDuration(250)
         anim.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationEnd(animation: Animator?) {
                 start_container.visibility = View.INVISIBLE
-                info_top.translationY = 0f
-                info_bottom.translationY = 0f
                 play_btn.scaleX = 1f
                 play_btn.scaleY = 1f
                 play_btn.alpha = 1f
             }
         })
         return anim
+    }
+
+
+    fun setGridHelpTextShowing(showing: Boolean, delay:Long = 0) {
+        if (showing) {
+            gridHelpTextAnim?.cancel()
+
+            var alpha = ObjectAnimator.ofFloat(grid_help_text, "rotation", 0f, -3f, 0f, 3f, 0f)
+            alpha.interpolator = OvershootInterpolator()
+            alpha.setDuration(650)
+            alpha.startDelay = delay
+            alpha.addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationStart(animation: Animator?) {
+                    grid_help_text.visibility = View.VISIBLE
+                }
+
+                override fun onAnimationEnd(animation: Animator?) {
+                    if (gridHelpTextAnim != null) {
+                        gridHelpTextAnim = null
+                        setGridHelpTextShowing(true, 1000)
+                    }
+                }
+
+                override fun onAnimationCancel(animation: Animator?) {
+                    gridHelpTextAnim = null
+                    grid_help_text.visibility = View.GONE
+                }
+            })
+            gridHelpTextAnim = alpha
+            alpha.start()
+        } else {
+            gridHelpTextAnim?.cancel()
+            gridHelpTextAnim = null
+            grid_help_text.visibility = View.GONE
+        }
     }
 
     /**

@@ -57,13 +57,17 @@
             <FrameLayout
                 android:id="@+id/grid_container"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:paddingBottom="@dimen/keyline_one"
+                android:paddingTop="@dimen/keyline_one">
 
                 <com.hotpodata.blocklib.view.GridBinderView
                     android:id="@+id/gridbinderview_center"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/grid_double_height"
                     android:layout_gravity="center_vertical"
+                    android:layout_marginLeft="@dimen/keyline_one"
+                    android:layout_marginRight="@dimen/keyline_one"
                     android:visibility="invisible" />
 
                 <com.hotpodata.blocklib.view.GridBinderView
@@ -71,14 +75,30 @@
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/grid_height"
                     android:layout_gravity="top"
-                    android:elevation="8dp" />
+                    android:layout_marginLeft="@dimen/keyline_one"
+                    android:layout_marginRight="@dimen/keyline_one" />
+
+                <TextView
+                    android:id="@+id/grid_help_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/grid_height"
+                    android:layout_gravity="top"
+                    android:layout_marginLeft="@dimen/keyline_one"
+                    android:layout_marginRight="@dimen/keyline_one"
+                    android:gravity="center"
+                    android:text="@string/tap_here"
+                    android:textColor="@color/colorPrimary"
+                    android:textSize="24dp"
+                    android:textStyle="bold"
+                    android:visibility="invisible" />
 
                 <com.hotpodata.blocklib.view.GridBinderView
                     android:id="@+id/gridbinderview_bottom"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/grid_height"
                     android:layout_gravity="bottom"
-                    android:elevation="8dp" />
+                    android:layout_marginLeft="@dimen/keyline_one"
+                    android:layout_marginRight="@dimen/keyline_one" />
 
             </FrameLayout>
 
@@ -93,38 +113,8 @@
                     android:layout_height="@dimen/grid_double_height"
                     android:layout_gravity="center_vertical"
                     android:gravity="center"
-                    android:src="@drawable/ic_play_circle_outline_24dp"
+                    android:src="@drawable/ic_play_circle_outline_192dp"
                     android:tint="@color/info_btn_tint" />
-
-                <TextView
-                    android:id="@+id/info_top"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/grid_height"
-                    android:layout_gravity="top"
-                    android:background="@color/info_shade"
-                    android:gravity="center"
-                    android:paddingLeft="@dimen/keyline_one"
-                    android:paddingRight="@dimen/keyline_one"
-                    android:paddingTop="8dp"
-                    android:text="@string/info_top"
-                    android:textColor="@color/info_text"
-                    android:textSize="22dp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/info_bottom"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/grid_height"
-                    android:layout_gravity="bottom"
-                    android:background="@color/info_shade"
-                    android:gravity="center"
-                    android:paddingBottom="8dp"
-                    android:paddingLeft="@dimen/keyline_one"
-                    android:paddingRight="@dimen/keyline_one"
-                    android:text="@string/info_bottom"
-                    android:textColor="@color/info_text"
-                    android:textSize="22dp"
-                    android:textStyle="bold" />
 
             </FrameLayout>
 
