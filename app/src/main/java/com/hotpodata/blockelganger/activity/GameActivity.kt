@@ -488,7 +488,7 @@ class GameActivity : AppCompatActivity() {
         var yOffset = 0
         var workingBoard = Grid(topG.width, topG.height * 2)
         GridHelper.addGrid(workingBoard, topG, 0, 0)
-        while (!GridHelper.gridsCollide(workingBoard, btmG, 0, workingBoard.height - btmG.height - (yOffset + 1)) && yOffset < workingBoard.height) {
+        while (GridHelper.gridInBounds(workingBoard, btmG, 0, workingBoard.height - btmG.height - (yOffset + 1)) && !GridHelper.gridsCollide(workingBoard, btmG, 0, workingBoard.height - btmG.height - (yOffset + 1))) {
             yOffset++
         }
         GridHelper.addGrid(workingBoard, btmG, 0, workingBoard.height - btmG.height - yOffset)
