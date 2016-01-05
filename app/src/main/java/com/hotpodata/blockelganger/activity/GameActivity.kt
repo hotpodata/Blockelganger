@@ -47,10 +47,22 @@ class GameActivity : AppCompatActivity() {
     var paused = false
         set(pause: Boolean) {
             field = pause
-            pause_container.visibility = if (pause) View.VISIBLE else View.INVISIBLE
-            supportInvalidateOptionsMenu()
+            updateGameStateVisibilities()
         }
 
+    var gameover = false
+        set(gOver: Boolean) {
+            field = gOver
+            updateGameStateVisibilities()
+        }
+
+    fun updateGameStateVisibilities() {
+        var gameoverVis = gameover
+        var pauseVis = !gameover && paused
+        game_over_container.visibility = if (gameoverVis) View.VISIBLE else View.INVISIBLE
+        pause_container.visibility = if (pauseVis) View.VISIBLE else View.INVISIBLE
+        supportInvalidateOptionsMenu()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -130,15 +142,9 @@ class GameActivity : AppCompatActivity() {
             var startSmashAnim = genSmashAnim()
             var startAnim = AnimatorSet()
             startAnim.playSequentially(infoOutAnim, startSmashAnim)
-            startAnim.addListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationEnd(animation: Animator?) {
-                    subscribeToTicker()
-                }
-            })
             actionAnimator = startAnim
             startAnim.start()
         }
-
     }
 
 
@@ -152,13 +158,13 @@ class GameActivity : AppCompatActivity() {
         super.onPrepareOptionsMenu(menu)
         menu?.findItem(R.id.play)?.let {
             it.icon.setColorFilter(resources.getColor(R.color.white), PorterDuff.Mode.SRC_ATOP)
-            it.setEnabled(paused)
-            it.setVisible(paused)
+            it.setEnabled(paused && !gameover)
+            it.setVisible(paused && !gameover)
         }
         menu?.findItem(R.id.pause)?.let {
             it.icon.setColorFilter(resources.getColor(R.color.white), PorterDuff.Mode.SRC_ATOP)
-            it.setEnabled(!paused)
-            it.setVisible(!paused)
+            it.setEnabled(!paused && !gameover)
+            it.setVisible(!paused && !gameover)
         }
         return true
     }
@@ -186,30 +192,34 @@ class GameActivity : AppCompatActivity() {
 
 
     fun actionPauseGame() {
-        unsubscribeFromTicker()
-        paused = true
-        if (actionAnimator?.isRunning ?: false) {
-            actionAnimator?.pause()
-        }
-        if (countDownAnimator?.isRunning ?: false) {
-            countDownAnimator?.pause()
+        if (!paused) {
+            unsubscribeFromTicker()
+            paused = true
+            if (actionAnimator?.isRunning ?: false) {
+                actionAnimator?.pause()
+            }
+            if (countDownAnimator?.isRunning ?: false) {
+                countDownAnimator?.pause()
+            }
         }
     }
 
     fun actionResumeGame() {
-        paused = false
-        if (actionAnimator?.isPaused ?: false) {
-            actionAnimator?.resume()//This resubscribes at the end
-        } else {
-            if (countDownAnimator?.isPaused ?: false) {
-                countDownAnimator?.addListener(object : AnimatorListenerAdapter() {
-                    override fun onAnimationEnd(animation: Animator?) {
-                        subscribeToTicker(spentTicks.toInt())
-                    }
-                })
-                countDownAnimator?.resume()
+        if (paused) {
+            paused = false
+            if (actionAnimator?.isPaused ?: false) {
+                actionAnimator?.resume()//This resubscribes at the end
             } else {
-                subscribeToTicker(spentTicks.toInt())
+                if (countDownAnimator?.isPaused ?: false) {
+                    countDownAnimator?.addListener(object : AnimatorListenerAdapter() {
+                        override fun onAnimationEnd(animation: Animator?) {
+                            subscribeToTicker(spentTicks.toInt())
+                        }
+                    })
+                    countDownAnimator?.resume()
+                } else {
+                    subscribeToTicker(spentTicks.toInt())
+                }
             }
         }
     }
@@ -245,11 +255,6 @@ class GameActivity : AppCompatActivity() {
                         {
 
                             var anim = genSmashAnim()
-                            anim.addListener(object : AnimatorListenerAdapter() {
-                                override fun onAnimationEnd(animation: Animator?) {
-                                    subscribeToTicker()
-                                }
-                            })
                             actionAnimator = anim
                             anim.start()
 
@@ -377,12 +382,9 @@ class GameActivity : AppCompatActivity() {
     }
 
     /**
-     * This method returns the required topShape translation and bottomShape translation in a pair
+     * Use this function to smash together two grids into one
      */
-    fun smashGrids(): Pair<Float, Float> {
-        var btmG = GridHelper.copyGrid(bottomGrid)
-        var topG = GridHelper.copyGrid(topGrid)
-
+    fun combineShapes(topG: Grid, btmG: Grid): Grid {
         var yOffset = 0
         var workingBoard = Grid(topG.width, topG.height * 2)
         GridHelper.addGrid(workingBoard, topG, 0, 0)
@@ -393,26 +395,47 @@ class GameActivity : AppCompatActivity() {
 
         //This is the shape after the things have been smashed together
         var combinedShape = GridHelper.copyGridPortion(workingBoard, 0, 0, workingBoard.width, workingBoard.height - yOffset)
+        return combinedShape
+    }
 
-        //We add our new board so that we can easily get coordinates for smashing things...
-        var centerBoard = Grid(topG.width, topG.height * 2)
-        GridHelper.addGrid(centerBoard, combinedShape, 0, yOffset / 2)
-        gridbinderview_center.grid = centerBoard
 
-        var topShapePos = gridbinderview_center.getSubGridPosition(topG, 0, yOffset / 2)
-        var btmShapePos = gridbinderview_center.getSubGridPosition(btmG, 0, workingBoard.height - btmG.height - yOffset)
+    /**
+     * This checks if a shape is solid.
+     * When we smash our top and bottom grid together our shape should be solid, so gameover if not solid.
+     */
+    fun combinedShapeIsGameOver(grid: Grid): Boolean {
+        var gameOver = false
+        for (i in 0..grid.width - 1) {
+            if (!grid.colFull(i)) {
+                gameOver = true
+                break
+            }
+        }
+        return gameOver
+    }
 
-        var topTransY = gridbinderview_center.top + topShapePos.top - gridbinderview_top.top
-        var btmTransY = gridbinderview_center.top + btmShapePos.top - gridbinderview_bottom.top
-
+    /**
+     * Figure out the y translations for the top and bottom grids respectively
+     */
+    fun getCombinedShapeGridAnimTranslations(combinedShape: Grid, singleSideHeight: Int): Pair<Float, Float> {
+        var centerBoard = Grid(combinedShape.width, singleSideHeight * 2)
+        gridbinderview_center.grid = centerBoard//We set this up so we can correctly calculate positions
+        var shapePos = gridbinderview_center.getSubGridPosition(combinedShape, 0, (centerBoard.height - combinedShape.height) / 2)
+        var topTransY = gridbinderview_center.top + shapePos.top - gridbinderview_top.top
+        var btmTransY = gridbinderview_center.top + shapePos.bottom - gridbinderview_bottom.bottom
         return Pair(topTransY, btmTransY)
     }
+
 
     /**
      * This builds a nice animation for the two sides to crash together.
      */
     fun genSmashAnim(): Animator {
-        var trans = smashGrids()
+        var tCopy = GridHelper.copyGrid(topGrid)
+        var bCopy = GridHelper.copyGrid(bottomGrid)
+        var combined = combineShapes(tCopy, bCopy)
+        var trans = getCombinedShapeGridAnimTranslations(combined, tCopy.height)
+        var gOver = combinedShapeIsGameOver(combined)
 
         var topMove = ObjectAnimator.ofFloat(gridbinderview_top, "translationY", 0f, trans.first)
         var btmMove = ObjectAnimator.ofFloat(gridbinderview_bottom, "translationY", 0f, trans.second)
@@ -421,36 +444,53 @@ class GameActivity : AppCompatActivity() {
         animMoves.interpolator = AccelerateInterpolator()
         animMoves.setDuration(350)
 
-        var endScale = 0.2f
-        var gridsZoomX = ObjectAnimator.ofFloat(grid_container, "scaleX", 1f, endScale)
-        var gridsZoomY = ObjectAnimator.ofFloat(grid_container, "scaleY", 1f, endScale)
-        var gridsAlpha = ObjectAnimator.ofFloat(grid_container, "alpha", 1f, 0f)
-        var animGridsOut = AnimatorSet()
-        animGridsOut.playTogether(gridsZoomX, gridsZoomY, gridsAlpha)
-        animGridsOut.interpolator = AccelerateInterpolator()
-        animGridsOut.setDuration(700)
-
-
-        var topReturn = ObjectAnimator.ofFloat(gridbinderview_top, "translationY", -gridbinderview_top.height.toFloat(), 0f)
-        var btmReturn = ObjectAnimator.ofFloat(gridbinderview_bottom, "translationY", gridbinderview_bottom.height.toFloat(), 0f)
-        var animReenter = AnimatorSet()
-        animReenter.playTogether(topReturn, btmReturn)
-        animReenter.interpolator = DecelerateInterpolator()
-        animReenter.addListener(object : AnimatorListenerAdapter() {
-            override fun onAnimationStart(animation: Animator?) {
-                grid_container.scaleX = 1f
-                grid_container.scaleY = 1f
-                grid_container.alpha = 1f
-
-                //Dimens should come from levels
-                level++
-                initGridsForLevel(level)
-            }
-        })
-        animGridsOut.setDuration(450)
-
+        //This is the return animator
         var animCombined = AnimatorSet()
-        animCombined.playSequentially(animMoves, animGridsOut, animReenter)
+        if (gOver) {
+            game_over_container.pivotX = 0f
+            var gameOverStrech = ObjectAnimator.ofFloat(game_over_container, "scaleX", 10f, 1f)
+            gameOverStrech.interpolator = AccelerateInterpolator()
+            gameOverStrech.setDuration(1000L)
+            gameOverStrech.addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationStart(animation: Animator?) {
+                    gameover = gOver
+                }
+            })
+            animCombined.playSequentially(animMoves, gameOverStrech)
+        } else {
+            var endScale = 0.2f
+            var gridsZoomX = ObjectAnimator.ofFloat(grid_container, "scaleX", 1f, endScale)
+            var gridsZoomY = ObjectAnimator.ofFloat(grid_container, "scaleY", 1f, endScale)
+            var gridsAlpha = ObjectAnimator.ofFloat(grid_container, "alpha", 1f, 0f)
+            var animGridsOut = AnimatorSet()
+            animGridsOut.playTogether(gridsZoomX, gridsZoomY, gridsAlpha)
+            animGridsOut.interpolator = AccelerateInterpolator()
+            animGridsOut.setDuration(700)
+
+
+            var topReturn = ObjectAnimator.ofFloat(gridbinderview_top, "translationY", -gridbinderview_top.height.toFloat(), 0f)
+            var btmReturn = ObjectAnimator.ofFloat(gridbinderview_bottom, "translationY", gridbinderview_bottom.height.toFloat(), 0f)
+            var animReenter = AnimatorSet()
+            animReenter.playTogether(topReturn, btmReturn)
+            animReenter.interpolator = DecelerateInterpolator()
+            animReenter.addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationStart(animation: Animator?) {
+                    grid_container.scaleX = 1f
+                    grid_container.scaleY = 1f
+                    grid_container.alpha = 1f
+
+                    //Dimens should come from levels
+                    level++
+                    initGridsForLevel(level)
+                }
+
+                override fun onAnimationEnd(animation: Animator?) {
+                    subscribeToTicker()
+                }
+            })
+            animGridsOut.setDuration(450)
+            animCombined.playSequentially(animMoves, animGridsOut, animReenter)
+        }
         return animCombined
     }
 

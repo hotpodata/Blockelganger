@@ -115,7 +115,7 @@
             android:visibility="invisible">
 
             <TextView
-                android:id="@+id/paused"
+                android:id="@+id/paused_tv"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@color/info_shade"
@@ -124,6 +124,31 @@
                 android:paddingRight="@dimen/keyline_one"
                 android:paddingTop="8dp"
                 android:text="@string/paused"
+                android:textColor="@color/white"
+                android:textSize="96dp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/game_over_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#AA000000"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="invisible">
+
+            <TextView
+                android:id="@+id/game_over_tv"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/info_shade"
+                android:gravity="center"
+                android:paddingLeft="@dimen/keyline_one"
+                android:paddingRight="@dimen/keyline_one"
+                android:paddingTop="8dp"
+                android:text="@string/game_over"
                 android:textColor="@color/white"
                 android:textSize="96dp"
                 android:textStyle="bold" />
