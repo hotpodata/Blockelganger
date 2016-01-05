@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/container"
+    android:layout_width="match_parent"
+    android:layout_height="128dp"
+    android:background="@color/colorPrimary">
+
+    <!-- TODO: PUT LOGO HERE -->
+    <ImageView
+        android:id="@+id/chain_icon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="@dimen/keyline_one"
+         />
+
+    <me.grantland.widget.AutofitTextView
+        android:id="@android:id/text1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/chain_icon"
+        android:layout_alignTop="@id/chain_icon"
+        android:layout_marginRight="@dimen/keyline_one"
+        android:singleLine="true"
+        android:text="@string/app_name"
+        android:textAllCaps="true"
+        android:textColor="#FFFFFF"
+        android:textSize="22dp"
+        android:textStyle="bold"
+        android:lines="1"
+        app:sizeToFit="true"/>
+
+    <TextView
+        android:id="@android:id/text2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/chain_icon"
+        android:layout_below="@android:id/text1"
+        android:singleLine="true"
+        android:textColor="#FFFFFF"
+        android:textSize="10dp"
+        android:textStyle="bold" />
+
+</RelativeLayout>

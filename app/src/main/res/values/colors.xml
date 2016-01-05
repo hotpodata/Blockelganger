@@ -15,4 +15,8 @@
     <color name="btm_grid">@color/material_blue</color>
     <color name="countdown_flash_color">@color/material_yellow</color>
     <color name="countdown_text_color">@color/material_blue_grey</color>
+
+    <color name="divider">#B6B6B6</color>
+    <color name="settings_row_title_color">#0F0F0F</color>
+    <color name="settings_row_subtitle_color">#5F5F5F</color>
 </resources>

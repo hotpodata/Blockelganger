@@ -1,11 +1,14 @@
 package com.hotpodata.blockelganger.activity
 
 import android.animation.*
+import android.content.res.Configuration
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.os.Bundle
+import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
+import android.support.v7.widget.LinearLayoutManager
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
@@ -13,6 +16,7 @@ import android.view.View
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import com.hotpodata.blockelganger.R
+import com.hotpodata.blockelganger.adapter.SideBarAdapter
 import com.hotpodata.blocklib.Grid
 import com.hotpodata.blocklib.GridHelper
 import com.hotpodata.blocklib.view.GridBinderView
@@ -38,6 +42,9 @@ class GameActivity : AppCompatActivity() {
     var actionAnimator: Animator? = null
     var countDownAnimator: Animator? = null
 
+    var sideBarAdapter: SideBarAdapter? = null
+    var drawerToggle: ActionBarDrawerToggle? = null
+
     var level = 0
         set(lvl: Int) {
             field = lvl
@@ -56,17 +63,18 @@ class GameActivity : AppCompatActivity() {
             updateGameStateVisibilities()
         }
 
-    fun updateGameStateVisibilities() {
-        var gameoverVis = gameover
-        var pauseVis = !gameover && paused
-        game_over_container.visibility = if (gameoverVis) View.VISIBLE else View.INVISIBLE
-        pause_container.visibility = if (pauseVis) View.VISIBLE else View.INVISIBLE
-        supportInvalidateOptionsMenu()
-    }
+    var gamestarted = false
+        set(started: Boolean){
+            field = started
+            updateGameStateVisibilities()
+        }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_game)
+
+        setSupportActionBar(toolbar);
 
         //Set up how to draw the blocks
         val topColor = getResources().getColor(R.color.top_grid)
@@ -145,6 +153,18 @@ class GameActivity : AppCompatActivity() {
             actionAnimator = startAnim
             startAnim.start()
         }
+
+
+        drawerToggle = object : ActionBarDrawerToggle(this, drawer_layout, R.string.drawer_open, R.string.drawer_closed) {
+            override fun onDrawerOpened(drawerView: View?) {
+                actionPauseGame()
+            }
+        }
+        drawer_layout.setDrawerListener(drawerToggle)
+        setUpLeftDrawer()
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setHomeButtonEnabled(true)
+        supportActionBar?.setShowHideAnimationEnabled(true)
     }
 
 
@@ -155,7 +175,6 @@ class GameActivity : AppCompatActivity() {
     }
 
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
-        super.onPrepareOptionsMenu(menu)
         menu?.findItem(R.id.play)?.let {
             it.icon.setColorFilter(resources.getColor(R.color.white), PorterDuff.Mode.SRC_ATOP)
             it.setEnabled(paused && !gameover)
@@ -166,11 +185,14 @@ class GameActivity : AppCompatActivity() {
             it.setEnabled(!paused && !gameover)
             it.setVisible(!paused && !gameover)
         }
-        return true
+        return super.onPrepareOptionsMenu(menu)
     }
 
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        if (drawerToggle?.onOptionsItemSelected(item) ?: false) {
+            return true
+        }
         item?.let {
             if (when (item.itemId) {
                 R.id.play -> {
@@ -190,6 +212,46 @@ class GameActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
 
+
+    override fun onPostCreate(savedInstanceState: Bundle?) {
+        super.onPostCreate(savedInstanceState)
+        // Sync the toggle state after onRestoreInstanceState has occurred.
+        drawerToggle?.syncState()
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        drawerToggle?.onConfigurationChanged(newConfig)
+    }
+
+    override fun onBackPressed() {
+        if (drawer_layout.isDrawerOpen(left_drawer) ?: false ) {
+            drawer_layout.closeDrawers()
+        } else {
+            super.onBackPressed()
+        }
+
+    }
+
+
+    fun updateGameStateVisibilities() {
+        var gameoverVis = gameover
+        var pauseVis = !gameover && paused
+        game_over_container.visibility = if (gameoverVis) View.VISIBLE else View.INVISIBLE
+        pause_container.visibility = if (pauseVis) View.VISIBLE else View.INVISIBLE
+        supportInvalidateOptionsMenu()
+    }
+
+    fun setUpLeftDrawer() {
+        if (sideBarAdapter == null) {
+            sideBarAdapter = with(SideBarAdapter(this)) {
+                setAccentColor(android.support.v4.content.ContextCompat.getColor(this@GameActivity, R.color.colorPrimary))
+                this
+            }
+            left_drawer.adapter = sideBarAdapter
+            left_drawer.layoutManager = LinearLayoutManager(this)
+        }
+    }
 
     fun actionPauseGame() {
         if (!paused) {
