@@ -42,16 +42,32 @@
                 android:layout_height="match_parent"
                 android:visibility="invisible">
 
-                <TextView
-                    android:id="@+id/countdown_tv"
+                <LinearLayout
+                    android:id="@+id/countdown_inner_container"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:text="3"
-                    android:textColor="@color/countdown_text_color"
-                    android:textSize="128dp"
-                    android:textStyle="bold" />
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
 
+                    <TextView
+                        android:id="@+id/countdown_tv"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="3"
+                        android:textColor="@color/countdown_text_color"
+                        android:textSize="128dp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/countdown_points"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/countdown_text_color"
+                        android:textSize="16dp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
             </FrameLayout>
 
             <FrameLayout

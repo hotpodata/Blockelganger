@@ -48,10 +48,19 @@ class GameActivity : AppCompatActivity() {
     var sideBarAdapter: SideBarAdapter? = null
     var drawerToggle: ActionBarDrawerToggle? = null
 
+    var touchedInTick = false
+    var noTouchStreak = 0
+
+    var points = 0
+        set(pts: Int) {
+            field = pts
+            supportActionBar?.subtitle = getString(R.string.points_template, pts)
+        }
+
     var level = 0
         set(lvl: Int) {
             field = lvl
-            supportActionBar?.subtitle = getString(R.string.level_template, lvl)
+            supportActionBar?.title = getString(R.string.level_template, lvl)
         }
 
     var paused = false
@@ -121,6 +130,9 @@ class GameActivity : AppCompatActivity() {
         gridbinderview_top.setOnTouchListener {
             view, motionEvent ->
             if (allowGameActions()) {
+                touchedInTick = true
+                noTouchStreak = 0
+
                 setGridHelpTextShowing(false)
                 var gridView = view as GridBinderView
                 when (motionEvent.actionMasked) {
@@ -186,9 +198,9 @@ class GameActivity : AppCompatActivity() {
         actionResetGame()
     }
 
-    override fun onPause(){
+    override fun onPause() {
         super.onPause()
-        if(gamestarted){
+        if (gamestarted) {
             paused = true
         }
     }
@@ -322,6 +334,9 @@ class GameActivity : AppCompatActivity() {
         gridbinderview_bottom.translationY = 0f
 
         level = 0
+        points = 0
+        touchedInTick = false
+        noTouchStreak = 0
         spentTicks = 0L
         gameover = false
         paused = false
@@ -398,6 +413,21 @@ class GameActivity : AppCompatActivity() {
                         {
                             l ->
                             if (spentTicks < seconds) {
+                                var tickPoints = 0
+                                if (!touchedInTick) {
+                                    noTouchStreak += 1
+                                    for (i in 0..noTouchStreak) {
+                                        tickPoints += i * 10
+                                    }
+                                }
+                                touchedInTick = false
+                                points += tickPoints
+
+                                if (tickPoints > 0) {
+                                    countdown_points.text = getString(R.string.countdown_points_template, tickPoints)
+                                } else {
+                                    countdown_points.text = ""
+                                }
                                 countdown_tv.text = "" + (seconds - spentTicks)
                                 var anim = genCountDownOutAnim(resources.getColor(R.color.countdown_flash_color))
                                 countDownAnimator = anim
@@ -624,8 +654,8 @@ class GameActivity : AppCompatActivity() {
                     grid_container.alpha = 1f
 
 
-                    //Dimens should come from levels
                     level++
+                    points += 100 * level
                     initGridsForLevel(level)
                 }
 
@@ -663,9 +693,9 @@ class GameActivity : AppCompatActivity() {
 
         //Scale and fade the current count down number
         var endScale = 0.2f
-        var countdownZoomX = ObjectAnimator.ofFloat(countdown_tv, "scaleX", 1f, endScale)
-        var countdownZoomY = ObjectAnimator.ofFloat(countdown_tv, "scaleY", 1f, endScale)
-        var countdownAlpha = ObjectAnimator.ofFloat(countdown_tv, "alpha", 1f, 0f)
+        var countdownZoomX = ObjectAnimator.ofFloat(countdown_inner_container, "scaleX", 1f, endScale)
+        var countdownZoomY = ObjectAnimator.ofFloat(countdown_inner_container, "scaleY", 1f, endScale)
+        var countdownAlpha = ObjectAnimator.ofFloat(countdown_inner_container, "alpha", 1f, 0f)
         var animCountdownOut = AnimatorSet()
         animCountdownOut.playTogether(countdownZoomX, countdownZoomY, countdownAlpha, bgAnim)
         animCountdownOut.interpolator = AccelerateInterpolator()

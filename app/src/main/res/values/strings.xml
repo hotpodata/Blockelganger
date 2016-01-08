@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Blockelgänger</string>
     <string name="level_template">Level:%1$d</string>
+    <string name="points_template">Points:%1$d</string>
 
     <string name="info_top">This block must be carved with your finger to fit together with the shape on the bottom.</string>
     <string name="info_bottom">A new shape will be generated here every turn!</string>
@@ -12,6 +13,7 @@
     <string name="continue_game">Continue Game</string>
     <string name="start_over">Start Over</string>
     <string name="tap_here">Tap Here!</string>
+    <string name="countdown_points_template">+ %1$d</string>
 
 
     <string name="drawer_open">Drawer Open</string>
