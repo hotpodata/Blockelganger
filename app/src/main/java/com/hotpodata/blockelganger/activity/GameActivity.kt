@@ -226,9 +226,9 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         play_btn.setOnClickListener {
             actionStartGame()
         }
-
         stopped_start_over_btn.setOnClickListener {
             actionResetGame()
+            actionStartGame()
         }
         stopped_continue_btn.setOnClickListener {
             actionResumeGame()
