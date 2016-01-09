@@ -2,7 +2,6 @@ package com.hotpodata.blockelganger.activity
 
 import android.animation.*
 import android.content.res.Configuration
-import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.os.Bundle
@@ -19,6 +18,7 @@ import android.view.animation.DecelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import com.hotpodata.blockelganger.R
 import com.hotpodata.blockelganger.adapter.SideBarAdapter
+import com.hotpodata.blockelganger.helpers.ColorBlockDrawer
 import com.hotpodata.blocklib.Grid
 import com.hotpodata.blocklib.GridHelper
 import com.hotpodata.blocklib.view.GridBinderView
@@ -113,18 +113,8 @@ class GameActivity : AppCompatActivity() {
 
 
         //Set up how to draw the blocks
-        val topColor = getResources().getColor(R.color.top_grid)
-        val btmColor = getResources().getColor(R.color.btm_grid)
-        gridbinderview_top.blockDrawer = object : GridBinderView.IBlockDrawer {
-            override fun drawBlock(canvas: Canvas, data: Any) {
-                canvas.drawColor(topColor)
-            }
-        }
-        gridbinderview_bottom.blockDrawer = object : GridBinderView.IBlockDrawer {
-            override fun drawBlock(canvas: Canvas, data: Any) {
-                canvas.drawColor(btmColor)
-            }
-        }
+        gridbinderview_top.blockDrawer = ColorBlockDrawer(resources.getColor(R.color.top_grid))
+        gridbinderview_bottom.blockDrawer = ColorBlockDrawer(resources.getColor(R.color.btm_grid))
 
         //Set up the touch listener for the top grid
         gridbinderview_top.setOnTouchListener {
