@@ -3,5 +3,6 @@
     <dimen name="keyline_two">72dp</dimen>
 
     <dimen name="grid_height">96dp</dimen>
+    <dimen name="grid_height_with_margins">112dp</dimen>
     <dimen name="grid_double_height">192dp</dimen>
 </resources>

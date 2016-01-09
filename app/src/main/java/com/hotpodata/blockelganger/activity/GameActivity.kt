@@ -372,9 +372,13 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
             if (gameoverVis) {
                 stopped_msg_tv.text = getString(R.string.game_over)
                 stopped_continue_btn.visibility = View.GONE
+                stopped_spacer.layoutParams.height = resources.getDimensionPixelSize(R.dimen.grid_height_with_margins)
+                stopped_spacer.layoutParams = stopped_spacer.layoutParams
             } else if (pauseVis) {
                 stopped_msg_tv.text = getString(R.string.paused)
                 stopped_continue_btn.visibility = View.VISIBLE
+                stopped_spacer.layoutParams.height = 0
+                stopped_spacer.layoutParams = stopped_spacer.layoutParams
             }
             if (googleApiClient.isConnected) {
                 stopped_signed_in_container.visibility = View.VISIBLE
@@ -443,6 +447,8 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
             Games.Leaderboards.submitScore(googleApiClient, getString(R.string.leaderboard_alltimehighscores_id), points.toLong())
         }
 
+        grid_container.scaleX = 1f
+        grid_container.scaleY = 1f
         gridbinderview_top.translationY = 0f
         gridbinderview_bottom.translationY = 0f
 
@@ -734,11 +740,20 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         //This is the return animator
         var animCombined = AnimatorSet()
         if (gOver) {
-            stopped_container.pivotX = 0f
-            var gameOverStrech = ObjectAnimator.ofFloat(stopped_container, "scaleX", 10f, 1f)
-            gameOverStrech.interpolator = AccelerateInterpolator()
-            gameOverStrech.setDuration(1000L)
-            gameOverStrech.addListener(object : AnimatorListenerAdapter() {
+            var gameScaleX = ObjectAnimator.ofFloat(grid_container, "scaleX", 1f, 0.5f)
+            var gameScaleY = ObjectAnimator.ofFloat(grid_container, "scaleY", 1f, 0.5f)
+            var scaleDownBoardsAnim = AnimatorSet()
+            scaleDownBoardsAnim.playTogether(gameScaleX, gameScaleY)
+            scaleDownBoardsAnim.interpolator = AccelerateInterpolator()
+            scaleDownBoardsAnim.setDuration(450)
+
+            var gameOverShrinkX = ObjectAnimator.ofFloat(stopped_container, "scaleX", 10f, 1f)
+            var gameOverShrinkY = ObjectAnimator.ofFloat(stopped_container, "scaleY", 10f, 1f)
+            var enterGameOver = AnimatorSet()
+            enterGameOver.playTogether(gameOverShrinkX, gameOverShrinkY)
+            enterGameOver.interpolator = AccelerateInterpolator()
+            enterGameOver.setDuration(1000L)
+            enterGameOver.addListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationStart(animation: Animator?) {
                     gameover = gOver
                 }
@@ -752,11 +767,11 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
                             }
                             interstitialAd?.show()
                         }
-                    }, 500)
+                    }, 1000)
 
                 }
             })
-            animCombined.playSequentially(animMoves, gameOverStrech)
+            animCombined.playSequentially(animMoves, scaleDownBoardsAnim, enterGameOver)
         } else {
             var endScale = 0.2f
             var gridsZoomX = ObjectAnimator.ofFloat(grid_container, "scaleX", 1f, endScale)
