@@ -13,6 +13,7 @@
         android:layout_height="40dp"
         android:layout_alignParentBottom="true"
         android:layout_margin="@dimen/keyline_one"
+        android:src="@mipmap/launcher_white_only"
          />
 
     <me.grantland.widget.AutofitTextView
