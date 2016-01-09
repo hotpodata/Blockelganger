@@ -19,9 +19,13 @@ import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import android.widget.Toast
+import com.google.android.gms.ads.AdListener
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.InterstitialAd
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.games.Games
+import com.hotpodata.blockelganger.BuildConfig
 import com.hotpodata.blockelganger.R
 import com.hotpodata.blockelganger.adapter.SideBarAdapter
 import com.hotpodata.blockelganger.helpers.ColorBlockDrawer
@@ -35,6 +39,7 @@ import rx.Observable
 import rx.Subscription
 import rx.android.schedulers.AndroidSchedulers
 import timber.log.Timber
+import java.security.MessageDigest
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -62,6 +67,8 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
     var touchedInTick = false
     var noTouchStreak = 0
 
+    var activityResumed = false
+
     var points = 0
         set(pts: Int) {
             field = pts
@@ -82,6 +89,7 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
 
     var gameover = false
         set(gOver: Boolean) {
+            //Submit the score on gameover
             if (isLoggedIn() && !field && gOver) {
                 Games.Leaderboards.submitScore(googleApiClient, getString(R.string.leaderboard_alltimehighscores_id), points.toLong())
             }
@@ -125,6 +133,9 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
             }
             return _googleApiClient!!
         }
+
+    //ads
+    var interstitialAd: InterstitialAd? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -229,8 +240,25 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
             login()
         }
 
-
         actionResetGame()
+
+        //Set up ads..
+
+        var ad = InterstitialAd(this);
+        ad.setAdUnitId(getString(R.string.interstitial_add_unit_id))
+        ad.adListener = object : AdListener() {
+            override fun onAdClosed() {
+                super.onAdClosed()
+                requestNewInterstitial()
+            }
+        }
+        interstitialAd = ad
+        requestNewInterstitial()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        activityResumed = true
     }
 
     override fun onPause() {
@@ -238,6 +266,7 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         if (gamestarted) {
             paused = true
         }
+        activityResumed = false
     }
 
     override fun onStart() {
@@ -713,6 +742,19 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
                 override fun onAnimationStart(animation: Animator?) {
                     gameover = gOver
                 }
+
+                override fun onAnimationEnd(animation: Animator?) {
+                    //Show an ad on gameover
+                    stopped_container.postDelayed(Runnable {
+                        if (activityResumed && interstitialAd?.isLoaded ?: false) {
+                            if (gamestarted) {
+                                actionPauseGame()
+                            }
+                            interstitialAd?.show()
+                        }
+                    }, 500)
+
+                }
             })
             animCombined.playSequentially(animMoves, gameOverStrech)
         } else {
@@ -966,5 +1008,43 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
                 resolvingConnectionFailure = false
             }
         }
+    }
+
+    /*
+    AD STUFF
+     */
+
+    private fun requestNewInterstitial() {
+        var adRequest = with(AdRequest.Builder()) {
+            if (BuildConfig.IS_DEBUG_BUILD) {
+                addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+                var andId = android.provider.Settings.Secure.getString(contentResolver, android.provider.Settings.Secure.ANDROID_ID)
+                var hash = md5(andId).toUpperCase()
+                timber.log.Timber.d("Adding test device. hash:" + hash)
+                addTestDevice(hash)
+            }
+            build()
+        }
+        interstitialAd?.loadAd(adRequest);
+    }
+
+    private fun md5(s: String): String {
+        try {
+            var digest = MessageDigest.getInstance("MD5")
+            digest.update(s.toByteArray())
+            var messageDigest = digest.digest()
+
+            var hexString = StringBuffer()
+            for (i in messageDigest.indices) {
+                var h = Integer.toHexString(0xFF and messageDigest[i].toInt())
+                while (h.length < 2)
+                    h = "0" + h
+                hexString.append(h)
+            }
+            return hexString.toString()
+        } catch(ex: Exception) {
+            Timber.e(ex, "Fail in md5");
+        }
+        return ""
     }
 }
