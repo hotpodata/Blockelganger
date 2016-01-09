@@ -146,13 +146,13 @@
                     android:layout_centerInParent="true">
 
                     <View
-                        android:layout_width="64dp"
+                        android:layout_width="@dimen/keyline_two"
                         android:layout_height="match_parent"
                         android:layout_gravity="left"
                         android:background="@color/overlay_shade" />
 
                     <View
-                        android:layout_width="64dp"
+                        android:layout_width="@dimen/keyline_two"
                         android:layout_height="match_parent"
                         android:layout_gravity="right"
                         android:background="@color/overlay_shade" />
@@ -181,6 +181,19 @@
                         android:textSize="56dp"
                         android:textStyle="bold" />
 
+                    <TextView
+                        android:id="@+id/stopped_tip_tv"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:layout_marginLeft="@dimen/keyline_one"
+                        android:layout_marginRight="@dimen/keyline_one"
+                        android:gravity="center"
+                        android:text="@string/game_over_tip"
+                        android:textColor="@color/overlay_text"
+                        android:textSize="16dp"
+                        android:textStyle="bold" />
+
 
                 </LinearLayout>
 
@@ -200,8 +213,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="8dp"
-                        android:layout_marginLeft="@dimen/keyline_two"
-                        android:layout_marginRight="@dimen/keyline_two">
+                        android:layout_marginLeft="@dimen/keyline_one"
+                        android:layout_marginRight="@dimen/keyline_one">
 
                         <com.google.android.gms.common.SignInButton
                             android:id="@+id/stopped_sign_in_button"
@@ -233,8 +246,8 @@
                             android:id="@+id/stopped_leader_board_btn"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginLeft="@dimen/keyline_two"
-                            android:layout_marginRight="@dimen/keyline_two"
+                            android:layout_marginLeft="@dimen/keyline_one"
+                            android:layout_marginRight="@dimen/keyline_one"
                             android:layout_marginTop="@dimen/keyline_one"
                             android:background="@color/overlay_btn_bg"
                             android:gravity="center"
@@ -247,8 +260,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="8dp"
-                        android:layout_marginLeft="@dimen/keyline_two"
-                        android:layout_marginRight="@dimen/keyline_two"
+                        android:layout_marginLeft="@dimen/keyline_one"
+                        android:layout_marginRight="@dimen/keyline_one"
                         android:background="@color/overlay_btn_bg"
                         android:gravity="center"
                         android:text="@string/start_over"
@@ -259,8 +272,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="8dp"
-                        android:layout_marginLeft="@dimen/keyline_two"
-                        android:layout_marginRight="@dimen/keyline_two"
+                        android:layout_marginLeft="@dimen/keyline_one"
+                        android:layout_marginRight="@dimen/keyline_one"
                         android:background="@color/overlay_btn_bg"
                         android:gravity="center"
                         android:text="@string/resume"

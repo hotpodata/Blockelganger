@@ -7,7 +7,8 @@
     <string name="info_bottom">A new shape will be generated here every turn!</string>
 
     <string name="paused">Paused</string>
-    <string name="game_over">Game Over!</string>
+    <string name="game_over">Game Over</string>
+    <string name="game_over_tip">Shape the top piece to fit together with the bottom piece!</string>
     <string name="pause">Pause</string>
     <string name="high_scores">High Scores</string>
     <string name="play">Play</string>
