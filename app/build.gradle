@@ -12,6 +12,19 @@ android {
         versionCode 1
         versionName "1.0"
         multiDexEnabled true
+        resValue "string", "app_label", "Blockelganger"
+    }
+
+    signingConfigs {
+        def provDir = System.getenv("BLOCKELGANGER_KEYSTORE_DIRECTORY") ?: ""
+        def blockelgangerKeystorePass = System.getenv("BLOCKELGANGER_KEYSTORE_PASS") ?: ""
+        def blockelgangerPass = System.getenv("BLOCKELGANGER_PASS") ?: ""
+        blockelgangerRelease {
+            storeFile file("${provDir}/blockelganger.keystore")
+            storePassword blockelgangerKeystorePass
+            keyAlias "blockelganger-release"
+            keyPassword blockelgangerPass
+        }
     }
 
     buildTypes {
@@ -28,43 +41,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             buildConfigField "boolean", "LOGGING_ENABLED", "false"
             buildConfigField "boolean", "IS_DEBUG_BUILD", "false"
+            signingConfig signingConfigs.blockelgangerRelease
         }
     }
-    signingConfigs {
-        def provDir = System.getenv("BLOCKELGANGER_KEYSTORE_DIRECTORY") ?: ""
-        def blockelgangerKeystorePass = System.getenv("BLOCKELGANGER_KEYSTORE_PASS") ?: ""
-        def blockelgangerProPass = System.getenv("BLOCKELGANGER_PRO_PASS") ?: ""
-        blockelgangerProRelease {
-            storeFile file("${provDir}/blockelganger.keystore")
-            storePassword blockelgangerKeystorePass
-            keyAlias "blockelganger-pro-release"
-            keyPassword blockelgangerProPass
-        }
 
-        def blockelgangerFreePass = System.getenv("BLOCKELGANGER_FREE_PASS") ?: ""
-        blockelgangerFreeRelease {
-            storeFile file("${provDir}/blockelganger.keystore")
-            storePassword blockelgangerKeystorePass
-            keyAlias "blockelganger-free-release"
-            keyPassword blockelgangerFreePass
-        }
-    }
-    productFlavors {
-        def freeSigning = signingConfigs.blockelgangerFreeRelease
-        def proSigning = signingConfigs.blockelgangerProRelease
-        Free {
-            applicationId "com.hotpodata.blockelganger.free"
-            buildConfigField "boolean", "IS_PRO", "false"
-            signingConfig freeSigning
-            resValue "string", "app_label", "Blockelganger"
-        }
-        Pro {
-            applicationId "com.hotpodata.blockelganger.pro"
-            buildConfigField "boolean", "IS_PRO", "true"
-            signingConfig proSigning
-            resValue "string", "app_label", "Blockelganger Pro"
-        }
-    }
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
     }
@@ -75,6 +55,7 @@ dependencies {
     compile 'com.android.support:appcompat-v7:23.1.0'
     compile 'com.android.support:design:23.1.0'
     compile 'com.android.support:recyclerview-v7:23.1.0'
+    compile 'com.google.android.gms:play-services-games:8.3.0'
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile 'com.android.support:multidex:1.0.0'
     compile 'com.jakewharton.timber:timber:3.1.0'

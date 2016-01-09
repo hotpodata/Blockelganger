@@ -10,6 +10,11 @@
     <color name="info_shade">#00000000</color>
     <color name="info_btn_tint">@color/white</color>
 
+    <color name="overlay_shade">#F3FFFFFF</color>
+    <color name="overlay_text">@color/settings_row_subtitle_color</color>
+    <color name="overlay_btn_text">@color/white</color>
+    <color name="overlay_btn_bg">@color/colorPrimary</color>
+
     <color name="board_bg">@color/colorPrimary</color>
     <color name="top_grid">@color/white</color>
     <color name="btm_grid">@color/white</color>

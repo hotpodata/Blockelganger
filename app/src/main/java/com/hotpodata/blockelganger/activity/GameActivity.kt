@@ -1,6 +1,8 @@
 package com.hotpodata.blockelganger.activity
 
 import android.animation.*
+import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.PorterDuff
@@ -16,9 +18,15 @@ import android.view.View
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.OvershootInterpolator
+import android.widget.Toast
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.api.GoogleApiClient
+import com.google.android.gms.games.Games
 import com.hotpodata.blockelganger.R
 import com.hotpodata.blockelganger.adapter.SideBarAdapter
 import com.hotpodata.blockelganger.helpers.ColorBlockDrawer
+import com.hotpodata.blockelganger.interfaces.IGooglePlayGameServicesProvider
+import com.hotpodata.blockelganger.utils.BaseGameUtils
 import com.hotpodata.blocklib.Grid
 import com.hotpodata.blocklib.GridHelper
 import com.hotpodata.blocklib.view.GridBinderView
@@ -30,7 +38,10 @@ import timber.log.Timber
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-class GameActivity : AppCompatActivity() {
+class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, IGooglePlayGameServicesProvider {
+    val REQUEST_LEADERBOARD = 1
+    val RC_SIGN_IN = 9001
+    val STORAGE_KEY_AUTO_SIGN_IN = "STORAGE_KEY_AUTO_SIGN_IN"
 
     var topGrid = initFullGrid(1, 1)
     var bottomGrid = initFullGrid(1, 1)
@@ -71,6 +82,9 @@ class GameActivity : AppCompatActivity() {
 
     var gameover = false
         set(gOver: Boolean) {
+            if (isLoggedIn() && !field && gOver) {
+                Games.Leaderboards.submitScore(googleApiClient, getString(R.string.leaderboard_alltimehighscores_id), points.toLong())
+            }
             field = gOver
             gamestarted = false
             updateGameStateVisibilities()
@@ -80,6 +94,36 @@ class GameActivity : AppCompatActivity() {
         set(started: Boolean) {
             field = started
             updateGameStateVisibilities()
+        }
+
+    //Sign in stuff
+
+    var resolvingConnectionFailure = false
+    var autoStartSignInFlow: Boolean
+        set(signInOnStart: Boolean) {
+            var sharedPref = getPreferences(Context.MODE_PRIVATE);
+            with(sharedPref.edit()) {
+                putBoolean(STORAGE_KEY_AUTO_SIGN_IN, signInOnStart);
+                commit()
+            }
+        }
+        get() {
+            var sharedPref = getPreferences(Context.MODE_PRIVATE);
+            return sharedPref.getBoolean(STORAGE_KEY_AUTO_SIGN_IN, false)
+        }
+    var signInClicked = false;
+    var _googleApiClient: GoogleApiClient? = null
+    val googleApiClient: GoogleApiClient
+        get() {
+            if (_googleApiClient == null) {
+                _googleApiClient = GoogleApiClient.Builder(this)
+                        .addConnectionCallbacks(this)
+                        .addOnConnectionFailedListener(this)
+                        .addApi(Games.API)
+                        .addScope(Games.SCOPE_GAMES)
+                        .build();
+            }
+            return _googleApiClient!!
         }
 
 
@@ -172,16 +216,17 @@ class GameActivity : AppCompatActivity() {
             actionStartGame()
         }
 
-        game_over_start_over_btn.setOnClickListener {
+        stopped_start_over_btn.setOnClickListener {
             actionResetGame()
         }
-
-        pause_start_over_btn.setOnClickListener {
-            actionResetGame()
-        }
-
-        pause_continue_btn.setOnClickListener {
+        stopped_continue_btn.setOnClickListener {
             actionResumeGame()
+        }
+        stopped_leader_board_btn.setOnClickListener {
+            showLeaderBoard()
+        }
+        stopped_sign_in_button.setOnClickListener {
+            login()
         }
 
 
@@ -195,6 +240,32 @@ class GameActivity : AppCompatActivity() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        if (autoStartSignInFlow) {
+            googleApiClient.connect();
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        googleApiClient.disconnect()
+    }
+
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
+        super.onActivityResult(requestCode, resultCode, intent)
+        if (requestCode == RC_SIGN_IN) {
+            signInClicked = false;
+            resolvingConnectionFailure = false;
+            if (resultCode == RESULT_OK) {
+                googleApiClient.connect();
+            } else {
+                BaseGameUtils.showActivityResultError(this,
+                        requestCode, resultCode, R.string.signin_error);
+            }
+        }
+    }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         super.onCreateOptionsMenu(menu)
@@ -268,9 +339,27 @@ class GameActivity : AppCompatActivity() {
     fun updateGameStateVisibilities() {
         var gameoverVis = gameover
         var pauseVis = !gameover && paused && gamestarted
+        if (gameoverVis || pauseVis) {
+            if (gameoverVis) {
+                stopped_msg_tv.text = getString(R.string.game_over)
+                stopped_continue_btn.visibility = View.GONE
+            } else if (pauseVis) {
+                stopped_msg_tv.text = getString(R.string.paused)
+                stopped_continue_btn.visibility = View.VISIBLE
+            }
+            if (googleApiClient.isConnected) {
+                stopped_signed_in_container.visibility = View.VISIBLE
+                stopped_sign_in_container.visibility = View.GONE
+            } else {
+                stopped_signed_in_container.visibility = View.GONE
+                stopped_sign_in_container.visibility = View.VISIBLE
+            }
+            stopped_container.visibility = View.VISIBLE
+        } else {
+            stopped_container.visibility = View.INVISIBLE
+        }
+
         var startVis = !gamestarted && !gameover
-        game_over_container.visibility = if (gameoverVis) View.VISIBLE else View.INVISIBLE
-        pause_container.visibility = if (pauseVis) View.VISIBLE else View.INVISIBLE
         start_container.visibility = if (startVis) View.VISIBLE else View.INVISIBLE
         supportInvalidateOptionsMenu()
     }
@@ -280,7 +369,7 @@ class GameActivity : AppCompatActivity() {
      */
     fun setUpLeftDrawer() {
         if (sideBarAdapter == null) {
-            sideBarAdapter = with(SideBarAdapter(this)) {
+            sideBarAdapter = with(SideBarAdapter(this, this)) {
                 setAccentColor(android.support.v4.content.ContextCompat.getColor(this@GameActivity, R.color.colorPrimary))
                 this
             }
@@ -319,6 +408,11 @@ class GameActivity : AppCompatActivity() {
             countDownAnimator?.cancel()
         }
         setGridHelpTextShowing(false)
+
+        if (points > 0 && isLoggedIn()) {
+            //Submit on reset, for the quitters
+            Games.Leaderboards.submitScore(googleApiClient, getString(R.string.leaderboard_alltimehighscores_id), points.toLong())
+        }
 
         gridbinderview_top.translationY = 0f
         gridbinderview_bottom.translationY = 0f
@@ -611,8 +705,8 @@ class GameActivity : AppCompatActivity() {
         //This is the return animator
         var animCombined = AnimatorSet()
         if (gOver) {
-            game_over_container.pivotX = 0f
-            var gameOverStrech = ObjectAnimator.ofFloat(game_over_container, "scaleX", 10f, 1f)
+            stopped_container.pivotX = 0f
+            var gameOverStrech = ObjectAnimator.ofFloat(stopped_container, "scaleX", 10f, 1f)
             gameOverStrech.interpolator = AccelerateInterpolator()
             gameOverStrech.setDuration(1000L)
             gameOverStrech.addListener(object : AnimatorListenerAdapter() {
@@ -795,4 +889,82 @@ class GameActivity : AppCompatActivity() {
         return lvl * 2 + 1
     }
 
+    /**
+     * IGoolgePlayGameServicesProvider
+     */
+
+    override fun isLoggedIn(): Boolean {
+        return googleApiClient.isConnected
+    }
+
+    override fun login() {
+        signInClicked = true
+        autoStartSignInFlow = true
+        googleApiClient.connect();
+    }
+
+    override fun logout() {
+        signInClicked = false
+        autoStartSignInFlow = false
+        if (isLoggedIn()) {
+            Games.signOut(googleApiClient)
+            googleApiClient.disconnect()
+            sideBarAdapter?.rebuildRowSet()
+        }
+        updateGameStateVisibilities()
+    }
+
+    override fun showLeaderBoard() {
+        if (isLoggedIn()) {
+            startActivityForResult(Games.Leaderboards.getLeaderboardIntent(googleApiClient,
+                    getString(R.string.leaderboard_alltimehighscores_id)), REQUEST_LEADERBOARD);
+        } else {
+            Toast.makeText(this, R.string.you_must_be_signed_in, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
+    /**
+     * SIGN IN STUFF
+     */
+
+    override fun onConnected(connectionHint: Bundle?) {
+        Timber.d("SignIn - onConnected")
+        if (gameover && points > 0) {
+            Games.Leaderboards.submitScore(googleApiClient, getString(R.string.leaderboard_alltimehighscores_id), points.toLong())
+        }
+        updateGameStateVisibilities()
+        sideBarAdapter?.rebuildRowSet()
+    }
+
+    override fun onConnectionSuspended(p0: Int) {
+        Timber.d("SignIn - onConnectionSuspended")
+        googleApiClient.connect()
+    }
+
+    override fun onConnectionFailed(result: ConnectionResult?) {
+        Timber.d("SignIn - onConnectionFailed")
+        if (resolvingConnectionFailure) {
+            // already resolving
+            return
+        }
+
+        // if the sign-in button was clicked or if auto sign-in is enabled,
+        // launch the sign-in flow
+        if (signInClicked || autoStartSignInFlow) {
+            autoStartSignInFlow = false
+            signInClicked = false
+            resolvingConnectionFailure = true
+
+            // Attempt to resolve the connection failure using BaseGameUtils.
+            // The R.string.signin_other_error value should reference a generic
+            // error string in your strings.xml file, such as "There was
+            // an issue with sign-in, please try again later."
+            if (!BaseGameUtils.resolveConnectionFailure(this,
+                    googleApiClient, result,
+                    RC_SIGN_IN, getString(R.string.sign_in_failed))) {
+                resolvingConnectionFailure = false
+            }
+        }
+    }
 }

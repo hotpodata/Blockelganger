@@ -12,19 +12,21 @@ import android.view.View
 import android.view.ViewGroup
 import com.hotpodata.blockelganger.R
 import com.hotpodata.blockelganger.adapter.viewholder.*
+import com.hotpodata.blockelganger.interfaces.IGooglePlayGameServicesProvider
 import timber.log.Timber
 import java.util.*
 
 /**
  * Created by jdrotos on 11/7/15.
  */
-class SideBarAdapter(ctx: Context) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class SideBarAdapter(ctx: Context, val playGameServicesProvider: IGooglePlayGameServicesProvider) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private val ROW_TYPE_HEADER = 0
     private val ROW_TYPE_ONE_LINE = 1
     private val ROW_TYPE_TWO_LINE = 2
     private val ROW_TYPE_DIV = 3
     private val ROW_TYPE_DIV_INSET = 4
     private val ROW_TYPE_SIDE_BAR_HEADING = 5
+    private val ROW_TYPE_SIGN_IN = 6
 
     private var mRows: List<Any>
     private var mColor: Int
@@ -36,6 +38,10 @@ class SideBarAdapter(ctx: Context) : RecyclerView.Adapter<RecyclerView.ViewHolde
         mRows = buildRows()
     }
 
+    public fun rebuildRowSet() {
+        mRows = buildRows()
+        notifyDataSetChanged()
+    }
 
     public fun setAccentColor(color: Int) {
         mColor = color;
@@ -67,6 +73,10 @@ class SideBarAdapter(ctx: Context) : RecyclerView.Adapter<RecyclerView.ViewHolde
                 val v = inflater.inflate(R.layout.row_sidebar_header, parent, false)
                 SideBarHeaderViewHolder(v)
             }
+            ROW_TYPE_SIGN_IN -> {
+                val v = inflater.inflate(R.layout.row_signin, parent, false)
+                SignInViewHolder(v)
+            }
             else -> null
         }
     }
@@ -82,6 +92,22 @@ class SideBarAdapter(ctx: Context) : RecyclerView.Adapter<RecyclerView.ViewHolde
         }
         sideBarRows.add(SideBarAdapter.SideBarHeading(mContext.resources.getString(R.string.app_label), version))
 
+        sideBarRows.add(mContext.resources.getString(R.string.game))
+        if (playGameServicesProvider.isLoggedIn()) {
+            sideBarRows.add(SideBarAdapter.SettingsRow(mContext.resources.getString(R.string.high_scores), "", View.OnClickListener {
+                playGameServicesProvider.showLeaderBoard()
+            }, R.drawable.ic_trophy_black_48dp))
+            sideBarRows.add(SideBarAdapter.Div(true))
+            sideBarRows.add(SideBarAdapter.SettingsRow(mContext.resources.getString(R.string.sign_out), "", View.OnClickListener {
+                playGameServicesProvider.logout()
+            }, R.drawable.ic_highlight_remove_24dp))
+        } else {
+            sideBarRows.add(RowSignIn(View.OnClickListener {
+                playGameServicesProvider.login()
+            }))
+        }
+
+        sideBarRows.add(SideBarAdapter.Div(false))
         sideBarRows.add(mContext.resources.getString(R.string.actions))
         //RATE US
         sideBarRows.add(SideBarAdapter.SettingsRow(mContext.resources.getString(R.string.rate_us), mContext.resources.getString(R.string.rate_us_blerb_template, mContext.resources.getString(R.string.app_name)), View.OnClickListener {
@@ -256,6 +282,11 @@ class SideBarAdapter(ctx: Context) : RecyclerView.Adapter<RecyclerView.ViewHolde
                     vh.mSpacer.visibility = View.GONE
                 }
             }
+            ROW_TYPE_SIGN_IN -> {
+                val vh = holder as SignInViewHolder
+                val data = objData as RowSignIn
+                vh.signInBtn.setOnClickListener(data.onClickListener)
+            }
         }
     }
 
@@ -278,6 +309,7 @@ class SideBarAdapter(ctx: Context) : RecyclerView.Adapter<RecyclerView.ViewHolde
                 ROW_TYPE_DIV
             }
             is SideBarHeading -> ROW_TYPE_SIDE_BAR_HEADING
+            is RowSignIn -> ROW_TYPE_SIGN_IN
             else -> super.getItemViewType(position)
         }
     }
@@ -309,4 +341,6 @@ class SideBarAdapter(ctx: Context) : RecyclerView.Adapter<RecyclerView.ViewHolde
     class Div(val isInset: Boolean)
 
     class SideBarHeading(val title: String, val subtitle: String?)
+
+    class RowSignIn(val onClickListener: View.OnClickListener)
 }
