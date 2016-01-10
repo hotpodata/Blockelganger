@@ -94,9 +94,13 @@ class SideBarAdapter(ctx: Context, val playGameServicesProvider: IGooglePlayGame
 
         sideBarRows.add(mContext.resources.getString(R.string.game))
         if (playGameServicesProvider.isLoggedIn()) {
-            sideBarRows.add(SideBarAdapter.SettingsRow(mContext.resources.getString(R.string.high_scores), "", View.OnClickListener {
+            sideBarRows.add(SideBarAdapter.SettingsRow(mContext.resources.getString(R.string.leader_board), "", View.OnClickListener {
                 playGameServicesProvider.showLeaderBoard()
             }, R.drawable.ic_trophy_black_48dp))
+            sideBarRows.add(SideBarAdapter.Div(true))
+            sideBarRows.add(SideBarAdapter.SettingsRow(mContext.resources.getString(R.string.achievements), "", View.OnClickListener {
+                playGameServicesProvider.showAchievements()
+            }, R.drawable.ic_grade_24dp))
             sideBarRows.add(SideBarAdapter.Div(true))
             sideBarRows.add(SideBarAdapter.SettingsRow(mContext.resources.getString(R.string.sign_out), "", View.OnClickListener {
                 playGameServicesProvider.logout()

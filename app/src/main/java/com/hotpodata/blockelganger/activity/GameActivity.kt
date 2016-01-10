@@ -44,7 +44,9 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, IGooglePlayGameServicesProvider {
+
     val REQUEST_LEADERBOARD = 1
+    val REQUEST_ACHIEVEMENTS = 2
     val RC_SIGN_IN = 9001
     val STORAGE_KEY_AUTO_SIGN_IN = "STORAGE_KEY_AUTO_SIGN_IN"
 
@@ -91,7 +93,7 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         set(gOver: Boolean) {
             //Submit the score on gameover
             if (isLoggedIn() && !field && gOver) {
-                Games.Leaderboards.submitScore(googleApiClient, getString(R.string.leaderboard_alltimehighscores_id), points.toLong())
+                Games.Leaderboards.submitScore(googleApiClient, getString(R.string.leaderboard_scores), points.toLong())
             }
             field = gOver
             gamestarted = false
@@ -469,7 +471,7 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
 
         if (points > 0 && isLoggedIn()) {
             //Submit on reset, for the quitters
-            Games.Leaderboards.submitScore(googleApiClient, getString(R.string.leaderboard_alltimehighscores_id), points.toLong())
+            Games.Leaderboards.submitScore(googleApiClient, getString(R.string.leaderboard_scores), points.toLong())
         }
 
         grid_container.scaleX = 1f
@@ -762,7 +764,7 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         resetZoomsAnim.playTogether(gameScaleX, gameScaleY, gameOverExpandX, gameOverExpandY)
         resetZoomsAnim.interpolator = DecelerateInterpolator()
         resetZoomsAnim.setDuration(650)
-        resetZoomsAnim.addListener(object: AnimatorListenerAdapter(){
+        resetZoomsAnim.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationEnd(animation: Animator?) {
                 stopped_container.visibility = View.INVISIBLE
                 stopped_container.scaleX = 1f
@@ -861,9 +863,24 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
                     grid_container.scaleY = 1f
                     grid_container.alpha = 1f
 
+                    if (isLoggedIn()) {
+                        if (level == 1) {
+                            Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_new_kid_on_the_block));
+                        } else if (level == 5) {
+                            Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_block_head));
+                        } else if (level == 7) {
+                            Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_knock_their_blocks_off));
+                        } else if (level == 9) {
+                            Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_block_buster));
+                        }
+                        if (noTouchStreak > 3) {
+                            Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_beat_the_block_clock));
+                        }
+                    }
 
                     level++
                     points += 100 * level
+                    noTouchStreak = 0
                     initGridsForLevel(level)
                 }
 
@@ -1056,7 +1073,16 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
     override fun showLeaderBoard() {
         if (isLoggedIn()) {
             startActivityForResult(Games.Leaderboards.getLeaderboardIntent(googleApiClient,
-                    getString(R.string.leaderboard_alltimehighscores_id)), REQUEST_LEADERBOARD);
+                    getString(R.string.leaderboard_scores)), REQUEST_LEADERBOARD);
+        } else {
+            Toast.makeText(this, R.string.you_must_be_signed_in, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    override fun showAchievements() {
+        if (isLoggedIn()) {
+            startActivityForResult(Games.Achievements.getAchievementsIntent(googleApiClient),
+                    REQUEST_ACHIEVEMENTS);
         } else {
             Toast.makeText(this, R.string.you_must_be_signed_in, Toast.LENGTH_SHORT).show()
         }
@@ -1070,7 +1096,7 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
     override fun onConnected(connectionHint: Bundle?) {
         Timber.d("SignIn - onConnected")
         if (gameover && points > 0) {
-            Games.Leaderboards.submitScore(googleApiClient, getString(R.string.leaderboard_alltimehighscores_id), points.toLong())
+            Games.Leaderboards.submitScore(googleApiClient, getString(R.string.leaderboard_scores), points.toLong())
         }
         updateGameStateVisibilities()
         sideBarAdapter?.rebuildRowSet()

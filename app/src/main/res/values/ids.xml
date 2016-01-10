@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_id">590087097485</string>
-    <string name="leaderboard_alltimehighscores_id">CgkIjZm6n5YREAIQAA</string>
+    <string name="leaderboard_scores">CgkIjZm6n5YREAIQAA</string>
+    <string name="achievement_new_kid_on_the_block">CgkIjZm6n5YREAIQAw</string>
+    <string name="achievement_beat_the_block_clock">CgkIjZm6n5YREAIQBQ</string>
+    <string name="achievement_block_head">CgkIjZm6n5YREAIQBA</string>
+    <string name="achievement_knock_their_blocks_off">CgkIjZm6n5YREAIQBw</string>
+    <string name="achievement_block_buster">CgkIjZm6n5YREAIQBg</string>
 </resources>

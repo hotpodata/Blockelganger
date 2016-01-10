@@ -10,14 +10,15 @@
     <string name="game_over">Game Over!</string>
     <string name="game_over_tip">The only tip: Shape the top piece to fit together with the bottom piece!</string>
     <string name="pause">Pause</string>
-    <string name="high_scores">High Scores</string>
+    <string name="leader_board">Leader Board</string>
+    <string name="achievements">Achievements</string>
     <string name="play">Play</string>
     <string name="resume">Resume</string>
     <string name="continue_game">Continue Game</string>
     <string name="start_over">Start Over</string>
     <string name="tap_here">Tap Here!</string>
     <string name="countdown_points_template">+ %1$d</string>
-    <string name="sign_in_blurb">Sign in to share your high scores, view the leader board, and see FEWER ADS!</string>
+    <string name="sign_in_blurb">Sign in to share your high scores, earn badges, view the leader board, and see FEWER ADS!</string>
     <string name="you_must_be_signed_in">You must be signed in to perform this action!</string>
     <string name="game">Game</string>
     <string name="sign_out">Sign Out</string>

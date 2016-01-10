@@ -237,7 +237,7 @@
                             android:layout_marginTop="@dimen/keyline_one"
                             android:background="@color/overlay_btn_bg"
                             android:gravity="center"
-                            android:text="@string/high_scores"
+                            android:text="@string/leader_board"
                             android:textColor="@color/overlay_btn_text" />
                     </LinearLayout>
 

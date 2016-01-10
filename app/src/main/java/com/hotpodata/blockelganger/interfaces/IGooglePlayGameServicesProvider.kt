@@ -8,4 +8,5 @@ interface IGooglePlayGameServicesProvider {
     fun login()
     fun logout()
     fun showLeaderBoard()
+    fun showAchievements()
 }
