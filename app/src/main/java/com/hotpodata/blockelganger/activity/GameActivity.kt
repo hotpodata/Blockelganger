@@ -767,15 +767,19 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
                 }
 
                 override fun onAnimationEnd(animation: Animator?) {
-                    //Show an ad on gameover
-                    stopped_container.postDelayed(Runnable {
-                        if (activityResumed && interstitialAd?.isLoaded ?: false) {
-                            if (gamestarted) {
-                                actionPauseGame()
+                    //Show an ad on gameover (randomly if the user is logged in)
+                    if (!isLoggedIn() || random.nextBoolean()) {
+                        stopped_container.postDelayed(Runnable {
+                            if (activityResumed && interstitialAd?.isLoaded ?: false) {
+                                if (gamestarted) {
+                                    actionPauseGame()
+                                }
+                                interstitialAd?.show()
                             }
-                            interstitialAd?.show()
-                        }
-                    }, 1000)
+                        }, 650)
+                    } else {
+                        Toast.makeText(this@GameActivity, R.string.thanks_for_signin_in_skip_ad_blurb, Toast.LENGTH_SHORT).show()
+                    }
 
                 }
             })
