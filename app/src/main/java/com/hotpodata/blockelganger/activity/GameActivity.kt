@@ -227,8 +227,12 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
             actionStartGame()
         }
         stopped_start_over_btn.setOnClickListener {
-            actionResetGame()
-            actionStartGame()
+            if (gameover) {
+                actionRestartGame()
+            } else {
+                actionResetGame()
+                actionStartGame()
+            }
         }
         stopped_continue_btn.setOnClickListener {
             actionResumeGame()
@@ -419,12 +423,25 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         }
     }
 
+    /**
+     * Animate from the game over state, to the game started state
+     */
+    fun actionRestartGame() {
+        var reset = genStartOverAnim()
+        reset.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationEnd(animation: Animator?) {
+                actionResetGame()
+            }
+        })
+        reset.start()
+    }
+
 
     /**
      * This starts the game
      */
     fun actionStartGame() {
-        var infoOutAnim = genHideInfoAnim()
+        var infoOutAnim = genHideInfoAnim(true)
         var startSmashAnim = genSmashAnim()
         var startAnim = AnimatorSet()
         startAnim.playSequentially(infoOutAnim, startSmashAnim)
@@ -457,8 +474,12 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
 
         grid_container.scaleX = 1f
         grid_container.scaleY = 1f
+        stopped_container.scaleX = 1f
+        stopped_container.scaleY = 1f
         gridbinderview_top.translationY = 0f
         gridbinderview_bottom.translationY = 0f
+        stopped_container.visibility = View.INVISIBLE
+
 
         level = 0
         points = 0
@@ -474,6 +495,7 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         //Set up grids
         gridbinderview_top.grid = topGrid
         gridbinderview_bottom.grid = bottomGrid
+
     }
 
     /**
@@ -729,6 +751,39 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
 
 
     /**
+     * Animate away from the gameover state
+     */
+    fun genStartOverAnim(): Animator {
+        var gameScaleX = ObjectAnimator.ofFloat(grid_container, "scaleX", 0.5f, 1f)
+        var gameScaleY = ObjectAnimator.ofFloat(grid_container, "scaleY", 0.5f, 1f)
+        var gameOverExpandX = ObjectAnimator.ofFloat(stopped_container, "scaleX", 1f, 10f)
+        var gameOverExpandY = ObjectAnimator.ofFloat(stopped_container, "scaleY", 1f, 10f)
+        var resetZoomsAnim = AnimatorSet()
+        resetZoomsAnim.playTogether(gameScaleX, gameScaleY, gameOverExpandX, gameOverExpandY)
+        resetZoomsAnim.interpolator = DecelerateInterpolator()
+        resetZoomsAnim.setDuration(650)
+        resetZoomsAnim.addListener(object: AnimatorListenerAdapter(){
+            override fun onAnimationEnd(animation: Animator?) {
+                stopped_container.visibility = View.INVISIBLE
+                stopped_container.scaleX = 1f
+                stopped_container.scaleY = 1f
+            }
+        })
+
+        var topMove = ObjectAnimator.ofFloat(gridbinderview_top, "translationY", gridbinderview_top.translationY, 0f)
+        var btmMove = ObjectAnimator.ofFloat(gridbinderview_bottom, "translationY", gridbinderview_bottom.translationY, 0f)
+        var resetTranslationsAnim = AnimatorSet()
+        resetTranslationsAnim.playTogether(topMove, btmMove)
+        resetTranslationsAnim.interpolator = AccelerateInterpolator()
+        resetTranslationsAnim.setDuration(400)
+
+
+        var combinedAnim = AnimatorSet()
+        combinedAnim.playSequentially(resetZoomsAnim, resetTranslationsAnim, genHideInfoAnim(false))
+        return combinedAnim
+    }
+
+    /**
      * This builds a nice animation for the two sides to crash together.
      */
     fun genSmashAnim(): Animator {
@@ -876,12 +931,16 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
     /**
      * Generate an animator that makes the play button fly away
      */
-    fun genHideInfoAnim(): Animator {
+    fun genHideInfoAnim(forward: Boolean): Animator {
         //Play btn anims
-        var endScale = 0.1f
-        var playScaleX = ObjectAnimator.ofFloat(play_btn, "scaleX", 1f, endScale)
-        var playScaleY = ObjectAnimator.ofFloat(play_btn, "scaleY", 1f, endScale)
-        var playAlpha = ObjectAnimator.ofFloat(play_btn, "alpha", 1f, 0f)
+
+        var startScale = if (forward) 1f else 0.1f
+        var endScale = if (forward) 0.1f else 1f
+        var startAlpha = if (forward) 1f else 0f
+        var endAlpha = if (forward) 0f else 1f
+        var playScaleX = ObjectAnimator.ofFloat(play_btn, "scaleX", startScale, endScale)
+        var playScaleY = ObjectAnimator.ofFloat(play_btn, "scaleY", startScale, endScale)
+        var playAlpha = ObjectAnimator.ofFloat(play_btn, "alpha", startAlpha, endAlpha)
         var playBtnOut = AnimatorSet()
         playBtnOut.playTogether(playScaleX, playScaleY, playAlpha)
 
@@ -889,11 +948,22 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         anim.playTogether(playBtnOut)
         anim.setDuration(250)
         anim.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationStart(animation: Animator?) {
+                if (!forward) {
+                    play_btn.scaleX = startScale
+                    play_btn.scaleY = startScale
+                    play_btn.alpha = startAlpha
+                    start_container.visibility = View.VISIBLE
+                }
+            }
+
             override fun onAnimationEnd(animation: Animator?) {
-                start_container.visibility = View.INVISIBLE
-                play_btn.scaleX = 1f
-                play_btn.scaleY = 1f
-                play_btn.alpha = 1f
+                if (forward) {
+                    start_container.visibility = View.INVISIBLE
+                    play_btn.scaleX = 1f
+                    play_btn.scaleY = 1f
+                    play_btn.alpha = 1f
+                }
             }
         })
         return anim
