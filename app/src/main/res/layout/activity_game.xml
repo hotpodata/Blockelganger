@@ -139,31 +139,17 @@
                 android:layout_height="match_parent"
                 android:visibility="visible">
 
-                <FrameLayout
+                <View
                     android:id="@+id/stopped_spacer"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/grid_height_with_margins"
-                    android:layout_centerInParent="true">
-
-                    <View
-                        android:layout_width="@dimen/keyline_two"
-                        android:layout_height="match_parent"
-                        android:layout_gravity="left"
-                        android:background="@color/overlay_shade" />
-
-                    <View
-                        android:layout_width="@dimen/keyline_two"
-                        android:layout_height="match_parent"
-                        android:layout_gravity="right"
-                        android:background="@color/overlay_shade" />
-                </FrameLayout>
+                    android:layout_centerInParent="true"/>
 
                 <LinearLayout
                     android:id="@+id/stopped_top_half_container"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_above="@id/stopped_spacer"
-                    android:background="@color/overlay_shade"
                     android:gravity="center_vertical"
                     android:orientation="vertical"
                     android:visibility="visible">
@@ -203,7 +189,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_below="@id/stopped_spacer"
-                    android:background="@color/overlay_shade"
                     android:gravity="center_vertical"
                     android:orientation="vertical"
                     android:paddingTop="8dp">
@@ -224,6 +209,7 @@
                             app:colorScheme="dark" />
 
                         <TextView
+                            android:id="@+id/stopped_sign_in_blurb"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_below="@+id/stopped_sign_in_button"

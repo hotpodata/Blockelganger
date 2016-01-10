@@ -374,11 +374,19 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
                 stopped_continue_btn.visibility = View.GONE
                 stopped_spacer.layoutParams.height = resources.getDimensionPixelSize(R.dimen.grid_height_with_margins)
                 stopped_spacer.layoutParams = stopped_spacer.layoutParams
+                stopped_container.setBackgroundColor(Color.TRANSPARENT)
+                stopped_msg_tv.setTextColor(resources.getColor(R.color.white))
+                stopped_tip_tv.setTextColor(resources.getColor(R.color.white))
+                stopped_sign_in_blurb.setTextColor(resources.getColor(R.color.white))
             } else if (pauseVis) {
                 stopped_msg_tv.text = getString(R.string.paused)
                 stopped_continue_btn.visibility = View.VISIBLE
                 stopped_spacer.layoutParams.height = 0
                 stopped_spacer.layoutParams = stopped_spacer.layoutParams
+                stopped_container.setBackgroundColor(resources.getColor(R.color.overlay_shade))
+                stopped_msg_tv.setTextColor(resources.getColor(R.color.overlay_text))
+                stopped_tip_tv.setTextColor(resources.getColor(R.color.overlay_text))
+                stopped_sign_in_blurb.setTextColor(resources.getColor(R.color.overlay_text))
             }
             if (googleApiClient.isConnected) {
                 stopped_signed_in_container.visibility = View.VISIBLE
