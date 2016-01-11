@@ -1,0 +1,62 @@
+{
+  "project_info": {
+    "project_id": "blockelganger-58934997",
+    "project_number": "590087097485",
+    "name": "Blockelganger"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:590087097485:android:6642f329fec6a74a",
+        "client_id": "android:com.hotpodata.blockelganger",
+        "client_type": 1,
+        "android_client_info": {
+          "package_name": "com.hotpodata.blockelganger"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "590087097485-rhudpqs38dm94gr6oeh2e7886n74neo0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.hotpodata.blockelganger",
+            "certificate_hash": "9E847FF30F99E5EC5A7CDDAA487E7AD3CCABB7B2"
+          }
+        },
+        {
+          "client_id": "590087097485-3mh61popmenvln3g2umve955bqnd3n1u.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.hotpodata.blockelganger",
+            "certificate_hash": "FBC6290B0355C362A8BEC13503D11C52761DA042"
+          }
+        }
+      ],
+      "api_key": [],
+      "services": {
+        "analytics_service": {
+          "status": 2,
+          "analytics_property": {
+            "tracking_id": "UA-70379200-12"
+          }
+        },
+        "cloud_messaging_service": {
+          "status": 1,
+          "apns_config": []
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "google_signin_service": {
+          "status": 1
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "client_info": [],
+  "ARTIFACT_VERSION": "1"
+}

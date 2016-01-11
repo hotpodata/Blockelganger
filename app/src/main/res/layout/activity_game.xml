@@ -154,7 +154,7 @@
                     android:orientation="vertical"
                     android:visibility="visible">
 
-                    <TextView
+                    <me.grantland.widget.AutofitTextView
                         android:id="@+id/stopped_msg_tv"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -162,10 +162,14 @@
                         android:layout_marginLeft="@dimen/keyline_one"
                         android:layout_marginRight="@dimen/keyline_one"
                         android:gravity="center"
+                        android:lines="1"
+                        android:singleLine="true"
                         android:text="@string/paused"
+                        android:textAllCaps="true"
                         android:textColor="@color/overlay_text"
                         android:textSize="56dp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        app:sizeToFit="true" />
 
                     <TextView
                         android:id="@+id/stopped_tip_tv"

@@ -10,6 +10,8 @@ import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.google.android.gms.analytics.HitBuilders
+import com.hotpodata.blockelganger.AnalyticsMaster
 import com.hotpodata.blockelganger.R
 import com.hotpodata.blockelganger.adapter.viewholder.*
 import com.hotpodata.blockelganger.interfaces.IGooglePlayGameServicesProvider
@@ -115,25 +117,54 @@ class SideBarAdapter(ctx: Context, val playGameServicesProvider: IGooglePlayGame
         sideBarRows.add(mContext.resources.getString(R.string.actions))
         //RATE US
         sideBarRows.add(SideBarAdapter.SettingsRow(mContext.resources.getString(R.string.rate_us), mContext.resources.getString(R.string.rate_us_blerb_template, mContext.resources.getString(R.string.app_name)), View.OnClickListener {
+            try {
+                AnalyticsMaster.getTracker(mContext).send(HitBuilders.EventBuilder()
+                        .setCategory(AnalyticsMaster.CATEGORY_ACTION)
+                        .setAction(AnalyticsMaster.ACTION_RATE_APP)
+                        .build());
+            } catch(ex: Exception) {
+                Timber.e(ex, "Analytics Exception");
+            }
+
+
             val intent = Intent(Intent.ACTION_VIEW)
-            intent.setData(Uri.parse("market://details?id=com.hotpodata.blockelganger.free"))
+            intent.setData(Uri.parse("market://details?id=com.hotpodata.blockelganger"))
             mContext.startActivity(intent)
         }, R.drawable.ic_action_rate))
 
         //EMAIL
         sideBarRows.add(SideBarAdapter.Div(true))
         sideBarRows.add(SideBarAdapter.SettingsRow(mContext.resources.getString(R.string.contact_the_developer), mContext.resources.getString(R.string.contact_email_addr_template, mContext.resources.getString(R.string.app_name)), View.OnClickListener {
+            try {
+                AnalyticsMaster.getTracker(mContext).send(HitBuilders.EventBuilder()
+                        .setCategory(AnalyticsMaster.CATEGORY_ACTION)
+                        .setAction(AnalyticsMaster.ACTION_CONTACT)
+                        .build());
+            } catch(ex: Exception) {
+                Timber.e(ex, "Analytics Exception");
+            }
+
             val intent = Intent(Intent.ACTION_SEND)
             intent.setType("message/rfc822")
             intent.putExtra(Intent.EXTRA_EMAIL, arrayOf(mContext.resources.getString(R.string.contact_email_addr_template, mContext.resources.getString(R.string.app_name))))
             if (intent.resolveActivity(mContext.packageManager) != null) {
                 mContext.startActivity(intent)
             }
+
         }, R.drawable.ic_action_mail))
 
         //TWITTER
         sideBarRows.add(SideBarAdapter.Div(true))
         sideBarRows.add(SideBarAdapter.SettingsRow(mContext.resources.getString(R.string.follow_us_on_twitter), mContext.resources.getString(R.string.twitter_handle), View.OnClickListener {
+            try {
+                AnalyticsMaster.getTracker(mContext).send(HitBuilders.EventBuilder()
+                        .setCategory(AnalyticsMaster.CATEGORY_ACTION)
+                        .setAction(AnalyticsMaster.ACTION_TWITTER)
+                        .build());
+            } catch(ex: Exception) {
+                Timber.e(ex, "Analytics Exception");
+            }
+
             val intent = Intent(Intent.ACTION_VIEW)
             intent.setData(Uri.parse(mContext.resources.getString(R.string.twitter_url)))
             mContext.startActivity(intent)
@@ -142,6 +173,15 @@ class SideBarAdapter(ctx: Context, val playGameServicesProvider: IGooglePlayGame
         //GITHUB
         sideBarRows.add(SideBarAdapter.Div(true))
         sideBarRows.add(SideBarAdapter.SettingsRow(mContext.resources.getString(R.string.follow_on_github), mContext.resources.getString(R.string.github_url), View.OnClickListener {
+            try {
+                AnalyticsMaster.getTracker(mContext).send(HitBuilders.EventBuilder()
+                        .setCategory(AnalyticsMaster.CATEGORY_ACTION)
+                        .setAction(AnalyticsMaster.ACTION_GITHUB)
+                        .build());
+            } catch(ex: Exception) {
+                Timber.e(ex, "Analytics Exception");
+            }
+
             val intent = Intent(Intent.ACTION_VIEW)
             intent.setData(Uri.parse(mContext.resources.getString(R.string.github_url)))
             mContext.startActivity(intent)
@@ -150,6 +190,15 @@ class SideBarAdapter(ctx: Context, val playGameServicesProvider: IGooglePlayGame
         //WEBSITE
         sideBarRows.add(SideBarAdapter.Div(true))
         sideBarRows.add(SideBarAdapter.SettingsRow(mContext.resources.getString(R.string.visit_website), mContext.resources.getString(R.string.visit_website_blurb), View.OnClickListener {
+            try {
+                AnalyticsMaster.getTracker(mContext).send(HitBuilders.EventBuilder()
+                        .setCategory(AnalyticsMaster.CATEGORY_ACTION)
+                        .setAction(AnalyticsMaster.ACTION_WEBSITE)
+                        .build());
+            } catch(ex: Exception) {
+                Timber.e(ex, "Analytics Exception");
+            }
+
             val intent = Intent(Intent.ACTION_VIEW)
             intent.setData(Uri.parse(mContext.resources.getString(R.string.website_url)))
             mContext.startActivity(intent)
@@ -160,6 +209,15 @@ class SideBarAdapter(ctx: Context, val playGameServicesProvider: IGooglePlayGame
         sideBarRows.add(mContext.resources.getString(R.string.apps))
         sideBarRows.add(SideBarAdapter.SettingsRow(mContext.resources.getString(R.string.redchain), mContext.resources.getString(R.string.redchain_desc), View.OnClickListener {
             try {
+                AnalyticsMaster.getTracker(mContext).send(HitBuilders.EventBuilder()
+                        .setCategory(AnalyticsMaster.CATEGORY_ACTION)
+                        .setAction(AnalyticsMaster.ACTION_REDCHAIN)
+                        .build());
+            } catch(ex: Exception) {
+                Timber.e(ex, "Analytics Exception");
+            }
+
+            try {
                 val intent = Intent(Intent.ACTION_VIEW)
                 intent.setData(Uri.parse("market://details?id=com.hotpodata.redchain.free"))
                 mContext.startActivity(intent)
@@ -169,6 +227,15 @@ class SideBarAdapter(ctx: Context, val playGameServicesProvider: IGooglePlayGame
         }, R.mipmap.launcher_redchain))
         sideBarRows.add(SideBarAdapter.Div(true))
         sideBarRows.add(SideBarAdapter.SettingsRow(mContext.resources.getString(R.string.filecat), mContext.resources.getString(R.string.filecat_desc), View.OnClickListener {
+            try {
+                AnalyticsMaster.getTracker(mContext).send(HitBuilders.EventBuilder()
+                        .setCategory(AnalyticsMaster.CATEGORY_ACTION)
+                        .setAction(AnalyticsMaster.ACTION_FILECAT)
+                        .build());
+            } catch(ex: Exception) {
+                Timber.e(ex, "Analytics Exception");
+            }
+
             try {
                 val intent = Intent(Intent.ACTION_VIEW)
                 intent.setData(Uri.parse("market://details?id=com.hotpodata.filecat.free"))
@@ -181,6 +248,15 @@ class SideBarAdapter(ctx: Context, val playGameServicesProvider: IGooglePlayGame
         sideBarRows.add(SideBarAdapter.Div(true))
         sideBarRows.add(SideBarAdapter.SettingsRow(mContext.resources.getString(R.string.wikicat), mContext.resources.getString(R.string.wikicat_desc), View.OnClickListener {
             try {
+                AnalyticsMaster.getTracker(mContext).send(HitBuilders.EventBuilder()
+                        .setCategory(AnalyticsMaster.CATEGORY_ACTION)
+                        .setAction(AnalyticsMaster.ACTION_WIKICAT)
+                        .build());
+            } catch(ex: Exception) {
+                Timber.e(ex, "Analytics Exception");
+            }
+
+            try {
                 val intent = Intent(Intent.ACTION_VIEW)
                 intent.setData(Uri.parse("market://details?id=com.hotpodata.wikicat.free"))
                 mContext.startActivity(intent)
@@ -191,6 +267,15 @@ class SideBarAdapter(ctx: Context, val playGameServicesProvider: IGooglePlayGame
 
         sideBarRows.add(SideBarAdapter.Div(true))
         sideBarRows.add(SideBarAdapter.SettingsRow(mContext.resources.getString(R.string.baconmasher), mContext.resources.getString(R.string.baconmasher_desc), View.OnClickListener {
+            try {
+                AnalyticsMaster.getTracker(mContext).send(HitBuilders.EventBuilder()
+                        .setCategory(AnalyticsMaster.CATEGORY_ACTION)
+                        .setAction(AnalyticsMaster.ACTION_BACONMASHER)
+                        .build());
+            } catch(ex: Exception) {
+                Timber.e(ex, "Analytics Exception");
+            }
+
             try {
                 val intent = Intent(Intent.ACTION_VIEW)
                 intent.setData(Uri.parse("market://details?id=com.hotpodata.baconmasher.free"))

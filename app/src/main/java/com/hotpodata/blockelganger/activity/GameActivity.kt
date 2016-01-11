@@ -22,9 +22,11 @@ import android.widget.Toast
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.InterstitialAd
+import com.google.android.gms.analytics.HitBuilders
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.games.Games
+import com.hotpodata.blockelganger.AnalyticsMaster
 import com.hotpodata.blockelganger.BuildConfig
 import com.hotpodata.blockelganger.R
 import com.hotpodata.blockelganger.adapter.SideBarAdapter
@@ -177,6 +179,16 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
                     actionPauseGame()
                 }
                 drawer_layout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+                try {
+                    AnalyticsMaster.getTracker(this@GameActivity).send(HitBuilders.EventBuilder()
+                            .setCategory(AnalyticsMaster.CATEGORY_ACTION)
+                            .setAction(AnalyticsMaster.ACTION_OPEN_DRAWER)
+                            .setLabel(AnalyticsMaster.LABEL_LEVEL)
+                            .setValue(level.toLong())
+                            .build());
+                } catch(ex: Exception) {
+                    Timber.e(ex, "Analytics Exception");
+                }
             }
 
             override fun onDrawerClosed(drawerView: View?) {
@@ -247,6 +259,17 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
             actionStartGame()
         }
         stopped_start_over_btn.setOnClickListener {
+            try {
+                AnalyticsMaster.getTracker(this).send(HitBuilders.EventBuilder()
+                        .setCategory(AnalyticsMaster.CATEGORY_ACTION)
+                        .setAction(AnalyticsMaster.ACTION_START_OVER)
+                        .setLabel(AnalyticsMaster.LABEL_LEVEL)
+                        .setValue(level.toLong())
+                        .build());
+            } catch(ex: Exception) {
+                Timber.e(ex, "Analytics Exception");
+            }
+
             if (gameover) {
                 actionRestartGame()
             } else {
@@ -289,6 +312,8 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
     override fun onResume() {
         super.onResume()
         activityResumed = true
+        AnalyticsMaster.getTracker(this).setScreenName(AnalyticsMaster.SCREEN_GAME);
+        AnalyticsMaster.getTracker(this).send(HitBuilders.ScreenViewBuilder().build());
     }
 
     override fun onPause() {
@@ -474,6 +499,18 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
      * This starts the game
      */
     fun actionStartGame() {
+        try {
+            AnalyticsMaster.getTracker(this).send(HitBuilders.EventBuilder()
+                    .setCategory(AnalyticsMaster.CATEGORY_ACTION)
+                    .setAction(AnalyticsMaster.ACTION_START_GAME)
+                    .setLabel(AnalyticsMaster.LABEL_LAUNCH_COUNT)
+                    .setValue(launchCount.toLong())
+                    .build());
+        } catch(ex: Exception) {
+            Timber.e(ex, "Analytics Exception");
+        }
+
+
         var infoOutAnim = genHideInfoAnim(true)
         var startSmashAnim = genSmashAnim()
         var startAnim = AnimatorSet()
@@ -485,6 +522,8 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         })
         actionAnimator = startAnim
         startAnim.start()
+
+
     }
 
     /**
@@ -547,6 +586,18 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
             if (gridHelpTextAnim?.isStarted ?: false) {
                 gridHelpTextAnim?.pause()
             }
+
+
+            try {
+                AnalyticsMaster.getTracker(this).send(HitBuilders.EventBuilder()
+                        .setCategory(AnalyticsMaster.CATEGORY_ACTION)
+                        .setAction(AnalyticsMaster.ACTION_PAUSE)
+                        .setLabel(AnalyticsMaster.LABEL_LEVEL)
+                        .setValue(level.toLong())
+                        .build());
+            } catch(ex: Exception) {
+                Timber.e(ex, "Analytics Exception");
+            }
         }
     }
 
@@ -575,6 +626,17 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
                 if (gridHelpTextAnim?.isPaused ?: false) {
                     gridHelpTextAnim?.resume()
                 }
+            }
+
+            try {
+                AnalyticsMaster.getTracker(this).send(HitBuilders.EventBuilder()
+                        .setCategory(AnalyticsMaster.CATEGORY_ACTION)
+                        .setAction(AnalyticsMaster.ACTION_RESUME)
+                        .setLabel(AnalyticsMaster.LABEL_LEVEL)
+                        .setValue(level.toLong())
+                        .build());
+            } catch(ex: Exception) {
+                Timber.e(ex, "Analytics Exception");
             }
         }
     }
@@ -836,6 +898,17 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         //This is the return animator
         var animCombined = AnimatorSet()
         if (gOver) {
+            try {
+                AnalyticsMaster.getTracker(this).send(HitBuilders.EventBuilder()
+                        .setCategory(AnalyticsMaster.CATEGORY_ACTION)
+                        .setAction(AnalyticsMaster.ACTION_GAME_OVER)
+                        .setLabel(AnalyticsMaster.LABEL_LEVEL)
+                        .setValue(level.toLong())
+                        .build());
+            } catch(ex: Exception) {
+                Timber.e(ex, "Analytics Exception");
+            }
+
             var gameScaleX = ObjectAnimator.ofFloat(grid_container, "scaleX", 1f, 0.5f)
             var gameScaleY = ObjectAnimator.ofFloat(grid_container, "scaleY", 1f, 0.5f)
             var scaleDownBoardsAnim = AnimatorSet()
@@ -907,6 +980,17 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
                         if (noTouchStreak > 3) {
                             Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_beat_the_block_clock));
                         }
+                    }
+
+                    try {
+                        AnalyticsMaster.getTracker(this@GameActivity).send(HitBuilders.EventBuilder()
+                                .setCategory(AnalyticsMaster.CATEGORY_ACTION)
+                                .setAction(AnalyticsMaster.ACTION_LEVEL_COMPLETE)
+                                .setLabel(AnalyticsMaster.LABEL_LEVEL)
+                                .setValue(level.toLong())
+                                .build());
+                    } catch(ex: Exception) {
+                        Timber.e(ex, "Analytics Exception");
                     }
 
                     level++
@@ -1066,6 +1150,17 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         if (!frag.isAdded) {
             frag.show(supportFragmentManager, FTAG_HOW_TO_PLAY)
         }
+
+        try {
+            AnalyticsMaster.getTracker(this).send(HitBuilders.EventBuilder()
+                    .setCategory(AnalyticsMaster.CATEGORY_ACTION)
+                    .setAction(AnalyticsMaster.ACTION_HELP)
+                    .setLabel(AnalyticsMaster.LABEL_LEVEL)
+                    .setValue(level.toLong())
+                    .build());
+        } catch(ex: Exception) {
+            Timber.e(ex, "Analytics Exception");
+        }
     }
 
     /**
@@ -1101,6 +1196,16 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         signInClicked = true
         autoStartSignInFlow = true
         googleApiClient.connect();
+        try {
+            AnalyticsMaster.getTracker(this@GameActivity).send(HitBuilders.EventBuilder()
+                    .setCategory(AnalyticsMaster.CATEGORY_ACTION)
+                    .setAction(AnalyticsMaster.ACTION_SIGN_IN)
+                    .setLabel(AnalyticsMaster.LABEL_LAUNCH_COUNT)
+                    .setValue(launchCount.toLong())
+                    .build());
+        } catch(ex: Exception) {
+            Timber.e(ex, "Analytics Exception");
+        }
     }
 
     override fun logout() {
@@ -1121,6 +1226,16 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         } else {
             Toast.makeText(this, R.string.you_must_be_signed_in, Toast.LENGTH_SHORT).show()
         }
+        try {
+            AnalyticsMaster.getTracker(this@GameActivity).send(HitBuilders.EventBuilder()
+                    .setCategory(AnalyticsMaster.CATEGORY_ACTION)
+                    .setAction(AnalyticsMaster.ACTION_LEADERBOARD)
+                    .setLabel(AnalyticsMaster.LABEL_LAUNCH_COUNT)
+                    .setValue(launchCount.toLong())
+                    .build());
+        } catch(ex: Exception) {
+            Timber.e(ex, "Analytics Exception");
+        }
     }
 
     override fun showAchievements() {
@@ -1129,6 +1244,16 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
                     REQUEST_ACHIEVEMENTS);
         } else {
             Toast.makeText(this, R.string.you_must_be_signed_in, Toast.LENGTH_SHORT).show()
+        }
+        try {
+            AnalyticsMaster.getTracker(this@GameActivity).send(HitBuilders.EventBuilder()
+                    .setCategory(AnalyticsMaster.CATEGORY_ACTION)
+                    .setAction(AnalyticsMaster.ACTION_ACHIEVEMENTS)
+                    .setLabel(AnalyticsMaster.LABEL_LAUNCH_COUNT)
+                    .setValue(launchCount.toLong())
+                    .build());
+        } catch(ex: Exception) {
+            Timber.e(ex, "Analytics Exception");
         }
     }
 
