@@ -28,6 +28,7 @@ import com.google.android.gms.games.Games
 import com.hotpodata.blockelganger.BuildConfig
 import com.hotpodata.blockelganger.R
 import com.hotpodata.blockelganger.adapter.SideBarAdapter
+import com.hotpodata.blockelganger.fragment.DialogHowToPlayFragment
 import com.hotpodata.blockelganger.helpers.ColorBlockDrawer
 import com.hotpodata.blockelganger.interfaces.IGooglePlayGameServicesProvider
 import com.hotpodata.blockelganger.utils.BaseGameUtils
@@ -49,6 +50,8 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
     val REQUEST_ACHIEVEMENTS = 2
     val RC_SIGN_IN = 9001
     val STORAGE_KEY_AUTO_SIGN_IN = "STORAGE_KEY_AUTO_SIGN_IN"
+    val STORAGE_KEY_LAUNCH_COUNT = "STORAGE_KEY_LAUNCH_COUNT"
+    val FTAG_HOW_TO_PLAY = "FTAG_HOW_TO_PLAY"
 
     var topGrid = initFullGrid(1, 1)
     var bottomGrid = initFullGrid(1, 1)
@@ -106,8 +109,21 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
             updateGameStateVisibilities()
         }
 
-    //Sign in stuff
+    //Launch stats
+    var launchCount: Int
+        set(launches: Int) {
+            var sharedPref = getPreferences(Context.MODE_PRIVATE);
+            with(sharedPref.edit()) {
+                putInt(STORAGE_KEY_LAUNCH_COUNT, launches);
+                commit()
+            }
+        }
+        get() {
+            var sharedPref = getPreferences(Context.MODE_PRIVATE);
+            return sharedPref.getInt(STORAGE_KEY_LAUNCH_COUNT, 0)
+        }
 
+    //Sign in stuff
     var resolvingConnectionFailure = false
     var autoStartSignInFlow: Boolean
         set(signInOnStart: Boolean) {
@@ -143,6 +159,8 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_game)
+
+
 
         //Set up the actionbar
         setSupportActionBar(toolbar);
@@ -260,6 +278,12 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         }
         interstitialAd = ad
         requestNewInterstitial()
+
+
+        launchCount++
+        if (launchCount <= 1) {
+            showHowToPlayDialog()
+        }
     }
 
     override fun onResume() {
@@ -309,6 +333,9 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
     }
 
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        menu?.findItem(R.id.help)?.let {
+            it.icon.setColorFilter(resources.getColor(R.color.white), PorterDuff.Mode.SRC_ATOP)
+        }
         menu?.findItem(R.id.play)?.let {
             it.icon.setColorFilter(resources.getColor(R.color.white), PorterDuff.Mode.SRC_ATOP)
             it.setEnabled(paused && !gameover && gamestarted)
@@ -335,6 +362,10 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
                 }
                 R.id.pause -> {
                     actionPauseGame()
+                    true
+                }
+                R.id.help -> {
+                    showHowToPlayDialog()
                     true
                 }
                 else -> false
@@ -1021,6 +1052,19 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
             gridHelpTextAnim?.cancel()
             gridHelpTextAnim = null
             grid_help_text.visibility = View.GONE
+        }
+    }
+
+    fun showHowToPlayDialog() {
+        if (gamestarted && !gameover) {
+            actionPauseGame()
+        }
+        var frag: DialogHowToPlayFragment? = supportFragmentManager.findFragmentByTag(FTAG_HOW_TO_PLAY) as DialogHowToPlayFragment?
+        if (frag == null) {
+            frag = DialogHowToPlayFragment()
+        }
+        if (!frag.isAdded) {
+            frag.show(supportFragmentManager, FTAG_HOW_TO_PLAY)
         }
     }
 

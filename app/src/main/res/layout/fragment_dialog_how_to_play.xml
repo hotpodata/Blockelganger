@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"
+    android:orientation="vertical">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/title_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/keyline_one"
+                android:layout_marginRight="@dimen/keyline_one"
+                android:layout_marginTop="12dp"
+                android:gravity="center_horizontal"
+                android:text="@string/how_to_play"
+                android:textAllCaps="true"
+                android:textColor="@color/colorPrimary"
+                android:textSize="24dp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/keyline_one"
+                android:orientation="horizontal">
+
+                <VideoView
+                    android:id="@+id/step_one_video"
+                    android:layout_width="135dp"
+                    android:layout_height="240dp"
+                    android:layout_gravity="left|center_vertical"
+                    android:layout_marginLeft="@dimen/keyline_one"
+                    android:gravity="center_horizontal" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="left|center_vertical"
+                    android:layout_marginLeft="@dimen/keyline_one"
+                    android:layout_marginRight="@dimen/keyline_one"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/step_one_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="left"
+                        android:text="@string/how_to_play_step_one"
+                        android:textColor="@color/settings_row_title_color"
+                        android:textSize="16dp" />
+
+                    <TextView
+                        android:id="@+id/step_two_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/keyline_one"
+                        android:gravity="left"
+                        android:text="@string/how_to_play_step_two"
+                        android:textColor="@color/settings_row_title_color"
+                        android:textSize="16dp" />
+                </LinearLayout>
+            </LinearLayout>
+
+
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginBottom="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_weight="0"
+        android:gravity="right"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_got_it"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginRight="@dimen/keyline_one"
+            android:text="@string/got_it"
+            android:textColor="@color/colorPrimary" />
+    </LinearLayout>
+</LinearLayout>

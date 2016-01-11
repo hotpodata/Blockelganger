@@ -16,13 +16,19 @@
     <string name="resume">Resume</string>
     <string name="continue_game">Continue Game</string>
     <string name="start_over">Start Over</string>
-    <string name="tap_here">Tap Here!</string>
+    <string name="tap_here">Tap Here Now!</string>
     <string name="countdown_points_template">+ %1$d</string>
     <string name="sign_in_blurb">Sign in to share your high scores, earn badges, view the leader board, and see FEWER ADS!</string>
     <string name="you_must_be_signed_in">You must be signed in to perform this action!</string>
     <string name="game">Game</string>
     <string name="sign_out">Sign Out</string>
     <string name="thanks_for_signin_in_skip_ad_blurb">Thanks for being signed in! No ad for you!</string>
+    <string name="got_it">Got it!</string>
+    <string name="help">Help</string>
+
+    <string name="how_to_play">How to defeat your blockelgänger</string>
+    <string name="how_to_play_step_one">&#8226;When the clock starts counting down, carve the top block to <b>FIT TOGETHER WITH</b> the bottom block.</string>
+    <string name="how_to_play_step_two">&#8226;Repeat! Now go crush your blockelgänger!</string>
 
     <string name="signin_error">Error signing in!</string>
     <string name="sign_in_failed">Failed to sign in. Please check your network connection and try again.</string>
