@@ -37,6 +37,7 @@ import com.hotpodata.blockelganger.utils.BaseGameUtils
 import com.hotpodata.blocklib.Grid
 import com.hotpodata.blocklib.GridHelper
 import com.hotpodata.blocklib.view.GridBinderView
+import com.hotpodata.common.utils.HashUtils
 import kotlinx.android.synthetic.main.activity_game.*
 import rx.Observable
 import rx.Subscription
@@ -1311,7 +1312,7 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
             if (BuildConfig.IS_DEBUG_BUILD) {
                 addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
                 var andId = android.provider.Settings.Secure.getString(contentResolver, android.provider.Settings.Secure.ANDROID_ID)
-                var hash = md5(andId).toUpperCase()
+                var hash = HashUtils.md5(andId).toUpperCase()
                 timber.log.Timber.d("Adding test device. hash:" + hash)
                 addTestDevice(hash)
             }
@@ -1320,23 +1321,5 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         interstitialAd?.loadAd(adRequest);
     }
 
-    private fun md5(s: String): String {
-        try {
-            var digest = MessageDigest.getInstance("MD5")
-            digest.update(s.toByteArray())
-            var messageDigest = digest.digest()
 
-            var hexString = StringBuffer()
-            for (i in messageDigest.indices) {
-                var h = Integer.toHexString(0xFF and messageDigest[i].toInt())
-                while (h.length < 2)
-                    h = "0" + h
-                hexString.append(h)
-            }
-            return hexString.toString()
-        } catch(ex: Exception) {
-            Timber.e(ex, "Fail in md5");
-        }
-        return ""
-    }
 }
