@@ -29,7 +29,7 @@ import com.google.android.gms.games.Games
 import com.hotpodata.blockelganger.AnalyticsMaster
 import com.hotpodata.blockelganger.BuildConfig
 import com.hotpodata.blockelganger.R
-import com.hotpodata.blockelganger.adapter.SideBarAdapter
+import com.hotpodata.blockelganger.adapter.BlockelgangerSideBarAdapter
 import com.hotpodata.blockelganger.fragment.DialogHowToPlayFragment
 import com.hotpodata.blockelganger.helpers.ColorBlockDrawer
 import com.hotpodata.blockelganger.interfaces.IGooglePlayGameServicesProvider
@@ -68,7 +68,7 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
     var countDownAnimator: Animator? = null
     var gridHelpTextAnim: Animator? = null
 
-    var sideBarAdapter: SideBarAdapter? = null
+    var sideBarAdapter: BlockelgangerSideBarAdapter? = null
     var drawerToggle: ActionBarDrawerToggle? = null
 
     var touchedInTick = false
@@ -472,7 +472,7 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
      */
     fun setUpLeftDrawer() {
         if (sideBarAdapter == null) {
-            sideBarAdapter = with(SideBarAdapter(this, this)) {
+            sideBarAdapter = with(BlockelgangerSideBarAdapter(this, this)) {
                 setAccentColor(android.support.v4.content.ContextCompat.getColor(this@GameActivity, R.color.colorPrimary))
                 this
             }
