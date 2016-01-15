@@ -1,3 +1,6 @@
 [submodule "BlockLib"]
 	path = BlockLib
 	url = git@github.com:hotpodata/BlockLib.git
+[submodule "common"]
+	path = common
+	url = git@github.com:hotpodata/common.git
