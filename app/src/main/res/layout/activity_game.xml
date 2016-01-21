@@ -180,7 +180,8 @@
                     android:layout_height="@dimen/grid_height"
                     android:layout_gravity="bottom"
                     android:layout_marginLeft="@dimen/keyline_one"
-                    android:layout_marginRight="@dimen/keyline_one" />
+                    android:layout_marginRight="@dimen/keyline_one"
+                    android:visibility="gone"/>
 
                 <TextView
                     android:id="@+id/grid_help_text"

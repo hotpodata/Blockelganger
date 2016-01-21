@@ -28,6 +28,8 @@ import com.hotpodata.blockelganger.R
 import com.hotpodata.blockelganger.adapter.BlockelgangerSideBarAdapter
 import com.hotpodata.blockelganger.fragment.DialogHowToPlayFragment
 import com.hotpodata.blockelganger.helpers.ColorBlockDrawer
+import com.hotpodata.blockelganger.helpers.GameGridHelper
+import com.hotpodata.blockelganger.helpers.GameHelper
 import com.hotpodata.blockelganger.helpers.GridTouchListener
 import com.hotpodata.blockelganger.interfaces.IGooglePlayGameServicesProvider
 import com.hotpodata.blockelganger.utils.BaseGameUtils
@@ -51,13 +53,31 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
     val STORAGE_KEY_LAUNCH_COUNT = "STORAGE_KEY_LAUNCH_COUNT"
     val FTAG_HOW_TO_PLAY = "FTAG_HOW_TO_PLAY"
 
-    var topGrid = initFullGrid(1, 1)
+    var points = 0
+        set(pts: Int) {
+            field = pts
+            sidebar_points_tv.text = "" + pts
+        }
+
+    var level = 0
+        set(lvl: Int) {
+            field = lvl
+            sidebar_level_tv.text = "" + lvl
+        }
+
+    var topGrid = GameGridHelper.genFullGrid(1, 1, true)
         set(grd: Grid) {
             field = grd
             gridbinderview_top.grid = grd
         }
 
-    var gangerGrid = initFullGrid(1, 1)
+    var btmGrid = GameGridHelper.genFullGrid(1, 1, true)
+        set(grd: Grid) {
+            field = grd
+            gridbinderview_btm.grid = grd
+        }
+
+    var gangerGrid = GameGridHelper.genFullGrid(1, 1, true)
         set(grd: Grid) {
             field = grd
             gridbinderview_blockelganger.grid = grd
@@ -78,17 +98,6 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
 
     var activityResumed = false
 
-    var points = 0
-        set(pts: Int) {
-            field = pts
-            sidebar_points_tv.text = "" + pts
-        }
-
-    var level = 0
-        set(lvl: Int) {
-            field = lvl
-            sidebar_level_tv.text = "" + lvl
-        }
 
     var paused = false
         set(pause: Boolean) {
@@ -178,6 +187,22 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
             showHowToPlayDialog()
         }
 
+        //Setup our click actions
+        play_btn.setOnClickListener {
+            actionStartGame()
+        }
+        stopped_start_over_btn.setOnClickListener {
+            actionStartOver()
+        }
+        stopped_continue_btn.setOnClickListener {
+            actionResumeGame()
+        }
+        stopped_leader_board_btn.setOnClickListener {
+            showLeaderBoard()
+        }
+        stopped_sign_in_button.setOnClickListener {
+            login()
+        }
 
         //Set up the drawer
         setUpLeftDrawer()
@@ -207,53 +232,24 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         drawer_layout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 
 
-        //Set up how to draw the blocks
+        //Set our gridviews
         gridbinderview_top.blockDrawer = ColorBlockDrawer(resources.getColor(R.color.top_grid))
-        gridbinderview_blockelganger.blockDrawer = ColorBlockDrawer(resources.getColor(R.color.btm_grid))
-
+        gridbinderview_btm.blockDrawer = ColorBlockDrawer(resources.getColor(R.color.btm_grid))
+        gridbinderview_blockelganger.blockDrawer = ColorBlockDrawer(resources.getColor(R.color.ganger_grid))
         gridbinderview_top.setOnTouchListener(GridTouchListener(this, object : GridTouchListener.IGridChangedListener {
             override fun onGridChanged(grid: Grid) {
                 topGrid = grid
             }
         }))
-
-        //Setup our click actions
-        play_btn.setOnClickListener {
-            actionStartGame()
-        }
-        stopped_start_over_btn.setOnClickListener {
-            try {
-                AnalyticsMaster.getTracker(this).send(HitBuilders.EventBuilder()
-                        .setCategory(AnalyticsMaster.CATEGORY_ACTION)
-                        .setAction(AnalyticsMaster.ACTION_START_OVER)
-                        .setLabel(AnalyticsMaster.LABEL_LEVEL)
-                        .setValue(level.toLong())
-                        .build());
-            } catch(ex: Exception) {
-                Timber.e(ex, "Analytics Exception");
+        gridbinderview_btm.setOnTouchListener(GridTouchListener(this, object : GridTouchListener.IGridChangedListener {
+            override fun onGridChanged(grid: Grid) {
+                btmGrid = grid
             }
+        }))
 
-            if (gameover) {
-                actionRestartGame()
-            } else {
-                actionResetGame()
-                actionStartGame()
-            }
-        }
-        stopped_continue_btn.setOnClickListener {
-            actionResumeGame()
-        }
-        stopped_leader_board_btn.setOnClickListener {
-            showLeaderBoard()
-        }
-        stopped_sign_in_button.setOnClickListener {
-            login()
-        }
 
-        actionResetGame()
 
         //Set up ads..
-
         var ad = InterstitialAd(this);
         ad.setAdUnitId(getString(R.string.interstitial_add_unit_id))
         ad.adListener = object : AdListener() {
@@ -265,10 +261,28 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         interstitialAd = ad
         requestNewInterstitial()
 
+        //Accounting
+        if (savedInstanceState == null) {
+            launchCount++
+            if (launchCount <= 1) {
+                showHowToPlayDialog()
+            }
+        }
 
-        launchCount++
-        if (launchCount <= 1) {
-            showHowToPlayDialog()
+        //Reset game state
+        actionResetGame()
+    }
+
+    override fun onPostCreate(savedInstanceState: Bundle?) {
+        super.onPostCreate(savedInstanceState)
+        // Sync the toggle state after onRestoreInstanceState has occurred.
+        drawerToggle?.syncState()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        if (autoStartSignInFlow) {
+            googleApiClient.connect();
         }
     }
 
@@ -287,18 +301,10 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         activityResumed = false
     }
 
-    override fun onStart() {
-        super.onStart()
-        if (autoStartSignInFlow) {
-            googleApiClient.connect();
-        }
-    }
-
     override fun onStop() {
         super.onStop()
         googleApiClient.disconnect()
     }
-
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
         super.onActivityResult(requestCode, resultCode, intent)
@@ -312,13 +318,6 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
                         requestCode, resultCode, R.string.signin_error);
             }
         }
-    }
-
-
-    override fun onPostCreate(savedInstanceState: Bundle?) {
-        super.onPostCreate(savedInstanceState)
-        // Sync the toggle state after onRestoreInstanceState has occurred.
-        drawerToggle?.syncState()
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -409,6 +408,30 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         reset.start()
     }
 
+    /**
+     * If we are mid game: startover
+     * If we are gameover: reset
+     */
+    fun actionStartOver() {
+        try {
+            AnalyticsMaster.getTracker(this).send(HitBuilders.EventBuilder()
+                    .setCategory(AnalyticsMaster.CATEGORY_ACTION)
+                    .setAction(AnalyticsMaster.ACTION_START_OVER)
+                    .setLabel(AnalyticsMaster.LABEL_LEVEL)
+                    .setValue(level.toLong())
+                    .build());
+        } catch(ex: Exception) {
+            Timber.e(ex, "Analytics Exception");
+        }
+
+        if (gameover) {
+            actionRestartGame()
+        } else {
+            actionResetGame()
+            actionStartGame()
+        }
+    }
+
 
     /**
      * This starts the game
@@ -467,7 +490,6 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         gridbinderview_blockelganger.translationY = 0f
         stopped_container.visibility = View.INVISIBLE
 
-
         level = 0
         points = 0
         touchedInTick = false
@@ -476,9 +498,10 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         gameover = false
         paused = false
         gamestarted = false
-        topGrid = initFullGrid(1, 1)
-        gangerGrid = initFullGrid(1, 1)
 
+        topGrid = GameGridHelper.genFullGrid(1, 1, true)
+        btmGrid = GameGridHelper.genFullGrid(1, 1, true)
+        gangerGrid = GameGridHelper.genFullGrid(1, 1, true)
     }
 
     /**
@@ -558,7 +581,7 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
     fun subscribeToTicker(spentSeconds: Int = 0) {
         unsubscribeFromTicker()
 
-        var seconds = secondForLevel(level)
+        var seconds = GameHelper.secondForLevel(level)
         spentTicks = spentSeconds.toLong()
         subTicker = Observable.interval(1, TimeUnit.SECONDS).startWith(-1L)
                 .filter({ l -> allowGameActions() })//So we don't do anything
@@ -626,77 +649,11 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
      * Init the grids according to the level and bind them to the views
      */
     fun initGridsForLevel(lvl: Int) {
-        topGrid = initFullGrid(gridWidthForLevel(lvl), gridHeightForLevel(lvl))
-        gangerGrid = initBottomGrid(gridWidthForLevel(lvl), gridHeightForLevel(lvl))
+        topGrid = GameGridHelper.genGridForLevel(lvl)
+        btmGrid = GameGridHelper.genGridForLevel(lvl)
+        gangerGrid = GameGridHelper.genGangerForLevel(lvl)
     }
 
-    /**
-     * Generate a grid to use for the bottom in the starting position
-     */
-    fun initBottomGrid(width: Int, height: Int): Grid {
-        var grid = Grid(width, height)
-
-        while ((width > 1 && grid.rowFull(0)) || grid.rowEmpty(0)) {
-            for (i in grid.slots.indices) {
-                val dip = random.nextInt(grid.slots[i].size)
-                Timber.d("Dip:" + dip)
-                for (j in grid.slots[i].indices) {
-                    if (j >= dip ) {
-                        grid.put(i, j, true)
-                    } else {
-                        grid.put(i, j, null)
-                    }
-                }
-            }
-        }
-        return grid
-    }
-
-    /**
-     * Generate a grid to use for the top in the starting position
-     */
-    fun initFullGrid(width: Int, height: Int): Grid {
-        var grid = Grid(width, height)
-        for (i in 0..width - 1) {
-            for (j in 0..height - 1) {
-                grid.put(i, j, true)
-            }
-        }
-        return grid
-    }
-
-    /**
-     * Use this function to smash together two grids into one
-     */
-    fun combineShapes(topG: Grid, btmG: Grid): Grid {
-        var yOffset = 0
-        var workingBoard = Grid(topG.width, topG.height * 2)
-        GridHelper.addGrid(workingBoard, topG, 0, 0)
-        while (GridHelper.gridInBounds(workingBoard, btmG, 0, workingBoard.height - btmG.height - (yOffset + 1)) && !GridHelper.gridsCollide(workingBoard, btmG, 0, workingBoard.height - btmG.height - (yOffset + 1))) {
-            yOffset++
-        }
-        GridHelper.addGrid(workingBoard, btmG, 0, workingBoard.height - btmG.height - yOffset)
-
-        //This is the shape after the things have been smashed together
-        var combinedShape = GridHelper.copyGridPortion(workingBoard, 0, 0, workingBoard.width, workingBoard.height - yOffset)
-        return combinedShape
-    }
-
-
-    /**
-     * This checks if a shape is solid.
-     * When we smash our top and bottom grid together our shape should be solid, so gameover if not solid.
-     */
-    fun combinedShapeIsGameOver(grid: Grid): Boolean {
-        var gameOver = false
-        for (i in 0..grid.width - 1) {
-            if (!grid.colFull(i)) {
-                gameOver = true
-                break
-            }
-        }
-        return gameOver
-    }
 
     /**
      * Figure out the y translations for the top and bottom grids respectively
@@ -749,10 +706,10 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
      */
     fun genSmashAnim(): Animator {
         var tCopy = GridHelper.copyGrid(topGrid)
-        var bCopy = GridHelper.copyGrid(gangerGrid)
-        var combined = combineShapes(tCopy, bCopy)
+        var gCopy = GridHelper.copyGrid(gangerGrid)
+        var combined = GameGridHelper.combineShapes(tCopy, gCopy)
         var trans = getCombinedShapeGridAnimTranslations(combined, tCopy.height)
-        var gOver = combinedShapeIsGameOver(combined)
+        var gOver = GameGridHelper.combinedShapeIsGameOver(combined)
 
         var topMove = ObjectAnimator.ofFloat(gridbinderview_top, "translationY", 0f, trans.first)
         var btmMove = ObjectAnimator.ofFloat(gridbinderview_blockelganger, "translationY", 0f, trans.second)
@@ -823,9 +780,11 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
 
 
             var topReturn = ObjectAnimator.ofFloat(gridbinderview_top, "translationY", -gridbinderview_top.height.toFloat(), 0f)
-            var btmReturn = ObjectAnimator.ofFloat(gridbinderview_blockelganger, "translationY", gridbinderview_blockelganger.height.toFloat(), 0f)
+            var gangerReturn = ObjectAnimator.ofFloat(gridbinderview_blockelganger, "translationY", gridbinderview_blockelganger.height.toFloat(), 0f)
+
+
             var animReenter = AnimatorSet()
-            animReenter.playTogether(topReturn, btmReturn)
+            animReenter.playTogether(topReturn, gangerReturn)
             animReenter.interpolator = DecelerateInterpolator()
             animReenter.addListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationStart(animation: Animator?) {
@@ -1029,26 +988,6 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         }
     }
 
-    /**
-     * How tall should our grids be given the arg level
-     */
-    fun gridHeightForLevel(lvl: Int): Int {
-        return (lvl + 1) / 2 + 1
-    }
-
-    /**
-     * How wide should our grids be given the arg level
-     */
-    fun gridWidthForLevel(lvl: Int): Int {
-        return 4 + (lvl - 1) * 2
-    }
-
-    /**
-     * How much time in seconds should we have to solve the puzzle given the arg level
-     */
-    fun secondForLevel(lvl: Int): Int {
-        return lvl * 2 + 1
-    }
 
     /**
      * ITouchCoordinator

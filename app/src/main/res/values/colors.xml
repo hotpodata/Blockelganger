@@ -18,6 +18,7 @@
     <color name="board_bg">@color/colorPrimary</color>
     <color name="top_grid">@color/white</color>
     <color name="btm_grid">@color/white</color>
+    <color name="ganger_grid">@color/white</color>
     <color name="countdown_flash_color">#33000000</color>
     <color name="countdown_text_color">@color/sidebar_text_color</color>
 
