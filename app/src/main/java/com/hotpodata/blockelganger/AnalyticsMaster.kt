@@ -3,11 +3,12 @@ package com.hotpodata.blockelganger
 import android.content.Context
 import com.google.android.gms.analytics.GoogleAnalytics
 import com.google.android.gms.analytics.Tracker
+import com.hotpodata.common.interfaces.IAnalyticsProvider
 
 /**
  * Created by jdrotos on 11/18/15.
  */
-object AnalyticsMaster {
+object AnalyticsMaster : IAnalyticsProvider{
 
     //SCREENS
     val SCREEN_GAME = "BlockelGangerGame"
@@ -44,7 +45,7 @@ object AnalyticsMaster {
     val LABEL_LAUNCH_COUNT = "LaunchCount"
 
     private var tracker: Tracker? = null
-    public fun getTracker(context: Context): Tracker {
+    public override fun getTracker(context: Context): Tracker {
         val t = tracker ?:
                 GoogleAnalytics.getInstance(context).newTracker(R.xml.global_tracker).apply {
                     enableExceptionReporting(true)

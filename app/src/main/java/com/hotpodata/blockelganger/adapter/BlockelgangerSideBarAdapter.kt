@@ -5,6 +5,7 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.hotpodata.blockelganger.AnalyticsMaster
 import com.hotpodata.blockelganger.R
 import com.hotpodata.blockelganger.adapter.viewholder.SignInViewHolder
 import com.hotpodata.blockelganger.interfaces.IGooglePlayGameServicesProvider
@@ -17,7 +18,7 @@ import java.util.*
 /**
  * Created by jdrotos on 11/7/15.
  */
-class BlockelgangerSideBarAdapter(ctx: Context, val playGameServicesProvider: IGooglePlayGameServicesProvider) : SideBarAdapter(ctx, App.Factory.createApp(ctx, HotPoDataApps.BLOCKELGANGER), false, false, Libraries.AutoFitTextView, Libraries.RxAndroid, Libraries.RxJava, Libraries.RxKotlin, Libraries.Timber) {
+class BlockelgangerSideBarAdapter(ctx: Context, val playGameServicesProvider: IGooglePlayGameServicesProvider) : SideBarAdapter(ctx, AnalyticsMaster, App.Factory.createApp(ctx, HotPoDataApps.BLOCKELGANGER), false, false, Libraries.AutoFitTextView, Libraries.RxAndroid, Libraries.RxJava, Libraries.RxKotlin, Libraries.Timber) {
 
     private val ROW_TYPE_SIGN_IN = 100
 
