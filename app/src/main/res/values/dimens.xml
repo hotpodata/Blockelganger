@@ -2,6 +2,9 @@
     <dimen name="keyline_one">16dp</dimen>
     <dimen name="keyline_two">72dp</dimen>
 
+    <dimen name="sidebar_width">40dp</dimen>
+    <dimen name="sidebar_icon_width">24dp</dimen>
+
     <dimen name="grid_height">96dp</dimen>
     <dimen name="grid_height_with_margins">112dp</dimen>
     <dimen name="grid_double_height">192dp</dimen>

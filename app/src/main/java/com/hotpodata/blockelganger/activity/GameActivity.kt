@@ -5,14 +5,11 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Color
-import android.graphics.PorterDuff
 import android.os.Bundle
 import android.support.v4.widget.DrawerLayout
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
-import android.view.Menu
-import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.AccelerateInterpolator
@@ -43,7 +40,6 @@ import rx.Observable
 import rx.Subscription
 import rx.android.schedulers.AndroidSchedulers
 import timber.log.Timber
-import java.security.MessageDigest
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -57,7 +53,7 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
     val FTAG_HOW_TO_PLAY = "FTAG_HOW_TO_PLAY"
 
     var topGrid = initFullGrid(1, 1)
-    var bottomGrid = initFullGrid(1, 1)
+    var gangerGrid = initFullGrid(1, 1)
 
     var touchCoords: Pair<Int, Int>? = null
     var touchModeIsAdd = false
@@ -80,13 +76,13 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
     var points = 0
         set(pts: Int) {
             field = pts
-            supportActionBar?.subtitle = getString(R.string.points_template, pts)
+            sidebar_points_tv.text = "" + pts
         }
 
     var level = 0
         set(lvl: Int) {
             field = lvl
-            supportActionBar?.title = getString(R.string.level_template, lvl)
+            sidebar_level_tv.text = "" + lvl
         }
 
     var paused = false
@@ -164,12 +160,19 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         setContentView(R.layout.activity_game)
 
 
-
-        //Set up the actionbar
-        setSupportActionBar(toolbar);
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setHomeButtonEnabled(true)
-        supportActionBar?.setShowHideAnimationEnabled(true)
+        //set up sidebar buttons
+        sidebar_drawer_btn.setOnClickListener {
+            drawer_layout.openDrawer(left_drawer)
+        }
+        sidebar_play_btn.setOnClickListener {
+            actionResumeGame()
+        }
+        sidebar_pause_btn.setOnClickListener {
+            actionPauseGame()
+        }
+        sidebar_help_btn.setOnClickListener {
+            showHowToPlayDialog()
+        }
 
 
         //Set up the drawer
@@ -202,7 +205,7 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
 
         //Set up how to draw the blocks
         gridbinderview_top.blockDrawer = ColorBlockDrawer(resources.getColor(R.color.top_grid))
-        gridbinderview_bottom.blockDrawer = ColorBlockDrawer(resources.getColor(R.color.btm_grid))
+        gridbinderview_blockelganger.blockDrawer = ColorBlockDrawer(resources.getColor(R.color.btm_grid))
 
         //Set up the touch listener for the top grid
         gridbinderview_top.setOnTouchListener {
@@ -352,57 +355,6 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        super.onCreateOptionsMenu(menu)
-        menuInflater.inflate(R.menu.game_menu, menu)
-        return true
-    }
-
-    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
-        menu?.findItem(R.id.help)?.let {
-            it.icon.setColorFilter(resources.getColor(R.color.white), PorterDuff.Mode.SRC_ATOP)
-        }
-        menu?.findItem(R.id.play)?.let {
-            it.icon.setColorFilter(resources.getColor(R.color.white), PorterDuff.Mode.SRC_ATOP)
-            it.setEnabled(paused && !gameover && gamestarted)
-            it.setVisible(paused && !gameover && gamestarted)
-        }
-        menu?.findItem(R.id.pause)?.let {
-            it.icon.setColorFilter(resources.getColor(R.color.white), PorterDuff.Mode.SRC_ATOP)
-            it.setEnabled(!paused && !gameover && gamestarted)
-            it.setVisible(!paused && !gameover && gamestarted)
-        }
-        return super.onPrepareOptionsMenu(menu)
-    }
-
-
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        if (drawerToggle?.onOptionsItemSelected(item) ?: false) {
-            return true
-        }
-        item?.let {
-            if (when (item.itemId) {
-                R.id.play -> {
-                    actionResumeGame()
-                    true
-                }
-                R.id.pause -> {
-                    actionPauseGame()
-                    true
-                }
-                R.id.help -> {
-                    showHowToPlayDialog()
-                    true
-                }
-                else -> false
-            }) {
-                Timber.d("RETURNING TRUE, BECAUSE SYNTAX!")
-                return true
-            }
-        }
-        return super.onOptionsItemSelected(item)
-    }
-
 
     override fun onPostCreate(savedInstanceState: Bundle?) {
         super.onPostCreate(savedInstanceState)
@@ -465,7 +417,10 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
 
         var startVis = !gamestarted && !gameover
         start_container.visibility = if (startVis) View.VISIBLE else View.INVISIBLE
-        supportInvalidateOptionsMenu()
+        //supportInvalidateOptionsMenu()
+
+        sidebar_play_btn.visibility = if (paused && !gameover && gamestarted) View.VISIBLE else View.GONE
+        sidebar_pause_btn.visibility = if (!paused && !gameover && gamestarted) View.VISIBLE else View.GONE
     }
 
     /**
@@ -550,7 +505,7 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         stopped_container.scaleX = 1f
         stopped_container.scaleY = 1f
         gridbinderview_top.translationY = 0f
-        gridbinderview_bottom.translationY = 0f
+        gridbinderview_blockelganger.translationY = 0f
         stopped_container.visibility = View.INVISIBLE
 
 
@@ -563,11 +518,11 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         paused = false
         gamestarted = false
         topGrid = initFullGrid(1, 1)
-        bottomGrid = initFullGrid(1, 1)
+        gangerGrid = initFullGrid(1, 1)
 
         //Set up grids
         gridbinderview_top.grid = topGrid
-        gridbinderview_bottom.grid = bottomGrid
+        gridbinderview_blockelganger.grid = gangerGrid
 
     }
 
@@ -760,9 +715,9 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
      */
     fun initGridsForLevel(lvl: Int) {
         topGrid = initFullGrid(gridWidthForLevel(lvl), gridHeightForLevel(lvl))
-        bottomGrid = initBottomGrid(gridWidthForLevel(lvl), gridHeightForLevel(lvl))
+        gangerGrid = initBottomGrid(gridWidthForLevel(lvl), gridHeightForLevel(lvl))
         gridbinderview_top.grid = topGrid
-        gridbinderview_bottom.grid = bottomGrid
+        gridbinderview_blockelganger.grid = gangerGrid
     }
 
     /**
@@ -841,7 +796,7 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         gridbinderview_center.grid = centerBoard//We set this up so we can correctly calculate positions
         var shapePos = gridbinderview_center.getSubGridPosition(combinedShape, 0, (centerBoard.height - combinedShape.height) / 2)
         var topTransY = gridbinderview_center.top + shapePos.top - gridbinderview_top.top
-        var btmTransY = gridbinderview_center.top + shapePos.bottom - gridbinderview_bottom.bottom
+        var btmTransY = gridbinderview_center.top + shapePos.bottom - gridbinderview_blockelganger.bottom
         return Pair(topTransY, btmTransY)
     }
 
@@ -867,7 +822,7 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         })
 
         var topMove = ObjectAnimator.ofFloat(gridbinderview_top, "translationY", gridbinderview_top.translationY, 0f)
-        var btmMove = ObjectAnimator.ofFloat(gridbinderview_bottom, "translationY", gridbinderview_bottom.translationY, 0f)
+        var btmMove = ObjectAnimator.ofFloat(gridbinderview_blockelganger, "translationY", gridbinderview_blockelganger.translationY, 0f)
         var resetTranslationsAnim = AnimatorSet()
         resetTranslationsAnim.playTogether(topMove, btmMove)
         resetTranslationsAnim.interpolator = AccelerateInterpolator()
@@ -884,13 +839,13 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
      */
     fun genSmashAnim(): Animator {
         var tCopy = GridHelper.copyGrid(topGrid)
-        var bCopy = GridHelper.copyGrid(bottomGrid)
+        var bCopy = GridHelper.copyGrid(gangerGrid)
         var combined = combineShapes(tCopy, bCopy)
         var trans = getCombinedShapeGridAnimTranslations(combined, tCopy.height)
         var gOver = combinedShapeIsGameOver(combined)
 
         var topMove = ObjectAnimator.ofFloat(gridbinderview_top, "translationY", 0f, trans.first)
-        var btmMove = ObjectAnimator.ofFloat(gridbinderview_bottom, "translationY", 0f, trans.second)
+        var btmMove = ObjectAnimator.ofFloat(gridbinderview_blockelganger, "translationY", 0f, trans.second)
         var animMoves = AnimatorSet()
         animMoves.playTogether(topMove, btmMove)
         animMoves.interpolator = AccelerateInterpolator()
@@ -958,7 +913,7 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
 
 
             var topReturn = ObjectAnimator.ofFloat(gridbinderview_top, "translationY", -gridbinderview_top.height.toFloat(), 0f)
-            var btmReturn = ObjectAnimator.ofFloat(gridbinderview_bottom, "translationY", gridbinderview_bottom.height.toFloat(), 0f)
+            var btmReturn = ObjectAnimator.ofFloat(gridbinderview_blockelganger, "translationY", gridbinderview_blockelganger.height.toFloat(), 0f)
             var animReenter = AnimatorSet()
             animReenter.playTogether(topReturn, btmReturn)
             animReenter.interpolator = DecelerateInterpolator()

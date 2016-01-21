@@ -19,9 +19,12 @@
     <color name="top_grid">@color/white</color>
     <color name="btm_grid">@color/white</color>
     <color name="countdown_flash_color">#33000000</color>
-    <color name="countdown_text_color">@color/white</color>
+    <color name="countdown_text_color">@color/sidebar_text_color</color>
 
     <color name="divider">#B6B6B6</color>
     <color name="settings_row_title_color">#0F0F0F</color>
     <color name="settings_row_subtitle_color">#5F5F5F</color>
+
+    <color name="sidebar_color">#FF7043</color>
+    <color name="sidebar_text_color">@color/white</color>
 </resources>
