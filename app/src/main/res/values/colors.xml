@@ -25,6 +25,6 @@
     <color name="settings_row_title_color">#0F0F0F</color>
     <color name="settings_row_subtitle_color">#5F5F5F</color>
 
-    <color name="sidebar_color">#FF7043</color>
+    <color name="sidebar_color">@color/colorPrimary</color>
     <color name="sidebar_text_color">@color/white</color>
 </resources>

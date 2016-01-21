@@ -10,7 +10,6 @@ import android.support.v4.widget.DrawerLayout
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
-import android.view.MotionEvent
 import android.view.View
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
@@ -29,11 +28,11 @@ import com.hotpodata.blockelganger.R
 import com.hotpodata.blockelganger.adapter.BlockelgangerSideBarAdapter
 import com.hotpodata.blockelganger.fragment.DialogHowToPlayFragment
 import com.hotpodata.blockelganger.helpers.ColorBlockDrawer
+import com.hotpodata.blockelganger.helpers.GridTouchListener
 import com.hotpodata.blockelganger.interfaces.IGooglePlayGameServicesProvider
 import com.hotpodata.blockelganger.utils.BaseGameUtils
 import com.hotpodata.blocklib.Grid
 import com.hotpodata.blocklib.GridHelper
-import com.hotpodata.blocklib.view.GridBinderView
 import com.hotpodata.common.utils.HashUtils
 import kotlinx.android.synthetic.main.activity_game.*
 import rx.Observable
@@ -43,7 +42,7 @@ import timber.log.Timber
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, IGooglePlayGameServicesProvider {
+class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, IGooglePlayGameServicesProvider, GridTouchListener.ITouchCoordinator {
 
     val REQUEST_LEADERBOARD = 1
     val REQUEST_ACHIEVEMENTS = 2
@@ -53,10 +52,16 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
     val FTAG_HOW_TO_PLAY = "FTAG_HOW_TO_PLAY"
 
     var topGrid = initFullGrid(1, 1)
-    var gangerGrid = initFullGrid(1, 1)
+        set(grd: Grid) {
+            field = grd
+            gridbinderview_top.grid = grd
+        }
 
-    var touchCoords: Pair<Int, Int>? = null
-    var touchModeIsAdd = false
+    var gangerGrid = initFullGrid(1, 1)
+        set(grd: Grid) {
+            field = grd
+            gridbinderview_blockelganger.grid = grd
+        }
 
     var subTicker: Subscription? = null
     var spentTicks = 0L
@@ -159,7 +164,6 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_game)
 
-
         //set up sidebar buttons
         sidebar_drawer_btn.setOnClickListener {
             drawer_layout.openDrawer(left_drawer)
@@ -207,56 +211,11 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         gridbinderview_top.blockDrawer = ColorBlockDrawer(resources.getColor(R.color.top_grid))
         gridbinderview_blockelganger.blockDrawer = ColorBlockDrawer(resources.getColor(R.color.btm_grid))
 
-        //Set up the touch listener for the top grid
-        gridbinderview_top.setOnTouchListener {
-            view, motionEvent ->
-            if (allowGameActions()) {
-                touchedInTick = true
-                noTouchStreak = 0
-
-                setGridHelpTextShowing(false)
-                var gridView = view as GridBinderView
-                when (motionEvent.actionMasked) {
-                    MotionEvent.ACTION_DOWN -> {
-                        //Figure out where the touch happened and if this is to be an additive or subractive touch event
-                        var gridCoords = gridView.getGridCoords(motionEvent.x, motionEvent.y)
-                        if (topGridCoordsValid(gridCoords)) {
-                            touchCoords = gridCoords
-                            touchModeIsAdd = !topGridCoordsFilled(gridCoords)
-                            if (touchModeIsAdd) {
-                                addCoords(gridCoords)
-                            } else {
-                                subtractCoords(gridCoords)
-                            }
-                        }
-                    }
-                    MotionEvent.ACTION_UP -> {
-                        touchCoords = null
-                    }
-                    MotionEvent.ACTION_CANCEL -> {
-                        touchCoords = null
-                    }
-                    MotionEvent.ACTION_MOVE -> {
-                        //If we've moved, we either add or subtract depending on the down event
-                        var gridCoords = gridView.getGridCoords(motionEvent.x, motionEvent.y)
-                        if (topGridCoordsValid(gridCoords)) {
-                            if (touchCoords == null) {
-                                touchCoords = gridCoords
-                                touchModeIsAdd = !topGridCoordsFilled(gridCoords)
-                            }
-                            if (touchModeIsAdd) {
-                                addCoords(gridCoords)
-                            } else {
-                                subtractCoords(gridCoords)
-                            }
-                        }
-                    }
-                }
-                true
-            } else {
-                false
+        gridbinderview_top.setOnTouchListener(GridTouchListener(this, object : GridTouchListener.IGridChangedListener {
+            override fun onGridChanged(grid: Grid) {
+                topGrid = grid
             }
-        }
+        }))
 
         //Setup our click actions
         play_btn.setOnClickListener {
@@ -520,10 +479,6 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         topGrid = initFullGrid(1, 1)
         gangerGrid = initFullGrid(1, 1)
 
-        //Set up grids
-        gridbinderview_top.grid = topGrid
-        gridbinderview_blockelganger.grid = gangerGrid
-
     }
 
     /**
@@ -667,57 +622,12 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         return true
     }
 
-
-    /**
-     * Set coords filled, return true if change was made
-     */
-    fun addCoords(coords: Pair<Int, Int>): Boolean {
-        if (topGridCoordsValid(coords)) {
-            if (topGrid.at(coords.first, coords.second) == null) {
-                topGrid.put(coords.first, coords.second, true)
-                gridbinderview_top.grid = topGrid
-                return true
-            }
-        }
-        return false
-    }
-
-    /**
-     * Set coords empty, return true if change was made
-     */
-    fun subtractCoords(coords: Pair<Int, Int>): Boolean {
-        if (topGridCoordsValid(coords)) {
-            if (topGrid.at(coords.first, coords.second) != null) {
-                topGrid.put(coords.first, coords.second, null)
-                gridbinderview_top.grid = topGrid
-                return true
-            }
-        }
-        return false
-    }
-
-    /**
-     * Check if the coordinates at the given top grid are filled
-     */
-    fun topGridCoordsFilled(coords: Pair<Int, Int>): Boolean {
-        return topGridCoordsValid(coords) && topGrid.at(coords.first, coords.second) != null
-    }
-
-    /**
-     * Check validity of coords in the top grid
-     */
-    fun topGridCoordsValid(coords: Pair<Int, Int>): Boolean {
-        return coords.first >= 0 && coords.first < topGrid.width && coords.second >= 0 && coords.second < topGrid.height
-    }
-
     /**
      * Init the grids according to the level and bind them to the views
      */
     fun initGridsForLevel(lvl: Int) {
         topGrid = initFullGrid(gridWidthForLevel(lvl), gridHeightForLevel(lvl))
         gangerGrid = initBottomGrid(gridWidthForLevel(lvl), gridHeightForLevel(lvl))
-        gridbinderview_top.grid = topGrid
-        gridbinderview_blockelganger.grid = gangerGrid
     }
 
     /**
@@ -984,7 +894,7 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         var endColor: Int = Color.TRANSPARENT
         var bgAnim = ValueAnimator.ofFloat(0f, 1f)
         bgAnim.addUpdateListener {
-            countdown_container.setBackgroundColor(argb.evaluate(it.animatedValue as Float, startColor, endColor) as Int)
+            countdown_flash_container.setBackgroundColor(argb.evaluate(it.animatedValue as Float, startColor, endColor) as Int)
         }
 
         //Scale and fade the current count down number
@@ -1139,6 +1049,21 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
     fun secondForLevel(lvl: Int): Int {
         return lvl * 2 + 1
     }
+
+    /**
+     * ITouchCoordinator
+     */
+
+    override fun onGridTouched() {
+        touchedInTick = true
+        noTouchStreak = 0
+        setGridHelpTextShowing(false)
+    }
+
+    override fun allowGridTouch(): Boolean {
+        return allowGameActions()
+    }
+
 
     /**
      * IGoolgePlayGameServicesProvider
