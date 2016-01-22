@@ -9,11 +9,14 @@ object GameHelper {
 
     enum class Chapter {
         ONE,
-        TWO
+        TWO,
+        THREE
     }
 
     fun chapterForLevel(lvl: Int): Chapter {
-        if (lvl >= CHAPTER_STEP) {
+        if (lvl >= CHAPTER_STEP * 2) {
+            return Chapter.THREE
+        } else if (lvl >= CHAPTER_STEP) {
             return Chapter.TWO
         } else {
             return Chapter.ONE

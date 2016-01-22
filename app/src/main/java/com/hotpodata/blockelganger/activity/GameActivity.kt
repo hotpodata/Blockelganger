@@ -10,6 +10,7 @@ import android.support.v4.widget.DrawerLayout
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.widget.LinearLayoutManager
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.OvershootInterpolator
@@ -34,7 +35,6 @@ import com.hotpodata.blockelganger.helpers.GridTouchListener
 import com.hotpodata.blockelganger.interfaces.IGooglePlayGameServicesProvider
 import com.hotpodata.blockelganger.utils.BaseGameUtils
 import com.hotpodata.blocklib.Grid
-import com.hotpodata.blocklib.GridHelper
 import com.hotpodata.common.activity.ChameleonActivity
 import com.hotpodata.common.utils.HashUtils
 import com.hotpodata.common.view.SizeAwareFrameLayout
@@ -83,6 +83,12 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
         set(grd: Grid) {
             field = grd
             gridbinderview_btm.grid = grd
+        }
+
+    var rightGrid = GameGridHelper.genFullGrid(1, 1, true)
+        set(grd: Grid) {
+            field = grd
+            gridbinderview_right.grid = grd
         }
 
     var gangerGrid = GameGridHelper.genFullGrid(1, 1, true)
@@ -243,6 +249,7 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
         //Set our gridviews
         gridbinderview_top.blockDrawer = ColorBlockDrawer(resources.getColor(R.color.top_grid))
         gridbinderview_btm.blockDrawer = ColorBlockDrawer(resources.getColor(R.color.btm_grid))
+        gridbinderview_right.blockDrawer = ColorBlockDrawer(resources.getColor(R.color.right_grid))
         gridbinderview_blockelganger.blockDrawer = ColorBlockDrawer(resources.getColor(R.color.ganger_grid))
         gridbinderview_top.setOnTouchListener(GridTouchListener(this, object : GridTouchListener.IGridChangedListener {
             override fun onGridChanged(grid: Grid) {
@@ -252,6 +259,11 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
         gridbinderview_btm.setOnTouchListener(GridTouchListener(this, object : GridTouchListener.IGridChangedListener {
             override fun onGridChanged(grid: Grid) {
                 btmGrid = grid
+            }
+        }))
+        gridbinderview_right.setOnTouchListener(GridTouchListener(this, object : GridTouchListener.IGridChangedListener {
+            override fun onGridChanged(grid: Grid) {
+                rightGrid = grid
             }
         }))
 
@@ -481,6 +493,7 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
         return when (chapter) {
             GameHelper.Chapter.ONE -> resources.getColor(R.color.chapter_one_color)
             GameHelper.Chapter.TWO -> resources.getColor(R.color.chapter_two_color)
+            GameHelper.Chapter.THREE -> resources.getColor(R.color.chapter_three_color)
         }
     }
 
@@ -516,6 +529,7 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
 
         topGrid = GameGridHelper.genFullGrid(1, 1, true)
         btmGrid = GameGridHelper.genFullGrid(1, 1, true)
+        rightGrid = GameGridHelper.genFullGrid(1, 1, true)
         gangerGrid = GameGridHelper.genFullGrid(1, 1, true)
 
         grid_container.scaleX = 1f
@@ -526,6 +540,7 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
         gridbinderview_btm.translationY = 0f
         gridbinderview_btm.visibility = View.GONE
         gridbinderview_blockelganger.translationY = getDefaultGangerTransYForChapter(chapter)
+        gridbinderview_blockelganger.translationX = getDefaultGangerTransXForChapter(chapter)
         stopped_container.visibility = View.INVISIBLE
     }
 
@@ -676,6 +691,7 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
     fun initGridsForLevel(lvl: Int) {
         topGrid = GameGridHelper.genGridForLevel(lvl)
         btmGrid = GameGridHelper.genGridForLevel(lvl)
+        rightGrid = GameGridHelper.genGridForLevel(lvl).rotate(false)
         gangerGrid = GameGridHelper.genGangerForLevel(lvl)
         setLayoutForChapter(chapter)
 
@@ -703,7 +719,10 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
         })
 
         var topMove = ObjectAnimator.ofFloat(gridbinderview_top, "translationY", gridbinderview_top.translationY, 0f)
-        var gangerMove = ObjectAnimator.ofFloat(gridbinderview_blockelganger, "translationY", gridbinderview_blockelganger.translationY, getDefaultGangerTransYForChapter(GameHelper.Chapter.ONE))
+        var gangerYMove = ObjectAnimator.ofFloat(gridbinderview_blockelganger, "translationY", gridbinderview_blockelganger.translationY, getDefaultGangerTransYForChapter(GameHelper.Chapter.ONE))
+        var gangerXMove = ObjectAnimator.ofFloat(gridbinderview_blockelganger, "translationX", gridbinderview_blockelganger.translationX, getDefaultGangerTransXForChapter(GameHelper.Chapter.ONE))
+        var gangerMove = AnimatorSet()
+        gangerMove.playTogether(gangerXMove, gangerYMove)
         var resetTranslationsAnim = AnimatorSet()
         if (chapter == GameHelper.Chapter.TWO) {
             var btmMove = ObjectAnimator.ofFloat(gridbinderview_btm, "translationY", gridbinderview_btm.translationY, 0f)
@@ -719,175 +738,254 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
         return combinedAnim
     }
 
+    fun genCollideAnim(combined: Grid): Animator {
+        var animMoves = AnimatorSet()
+        if (chapter == GameHelper.Chapter.ONE || chapter == GameHelper.Chapter.TWO) {
+            //Vertical smash animations
+            var topAndGangComb = if (chapter == GameHelper.Chapter.ONE) combined else GameGridHelper.combineShapesVert(topGrid, gangerGrid)
+            var singleBlockHeight = gridbinderview_top.getSubGridPosition(Grid(1, 1), 0, 0).height()
+            var combinedShapeHeight = singleBlockHeight * combined.height
+            var combinedShapeTop = grid_container.height / 2f - combinedShapeHeight / 2f
+            var combinedShapeBottom = combinedShapeTop + combinedShapeHeight
+            var topTransY = combinedShapeTop - gridbinderview_top.top
+            var btmTransY = combinedShapeBottom - gridbinderview_btm.bottom
+            var gangerTransY = combinedShapeTop + singleBlockHeight * (topAndGangComb.height - gangerGrid.height) - gridbinderview_blockelganger.top
+            var topMove = ObjectAnimator.ofFloat(gridbinderview_top, "translationY", 0f, topTransY)
+            var gangerMove = ObjectAnimator.ofFloat(gridbinderview_blockelganger, "translationY", getDefaultGangerTransYForChapter(chapter), gangerTransY)
+            if (chapter == GameHelper.Chapter.TWO) {
+                var btmMove = ObjectAnimator.ofFloat(gridbinderview_btm, "translationY", 0f, btmTransY)
+                animMoves.playTogether(topMove, gangerMove, btmMove)
+            } else {
+                animMoves.playTogether(topMove, gangerMove)
+            }
+        } else if (chapter == GameHelper.Chapter.THREE) {
+            var singleBlockWidth = gridbinderview_right.getSubGridPosition(Grid(1, 1), 0, 0).width()
+            var combinedShapeWidth = singleBlockWidth * combined.width
+            var combinedShapeLeft = grid_container.width / 2f - combinedShapeWidth / 2f
+            var gangerTransX = combinedShapeLeft - gridbinderview_blockelganger.left
+            var rightTransX = (combinedShapeLeft + combinedShapeWidth) - gridbinderview_right.right
+            var gangerMove = ObjectAnimator.ofFloat(gridbinderview_blockelganger, "translationX", getDefaultGangerTransXForChapter(chapter), gangerTransX)
+            var rightMove = ObjectAnimator.ofFloat(gridbinderview_right, "translationX", 0f, rightTransX)
+            animMoves.playTogether(gangerMove, rightMove)
+        }
+        animMoves.interpolator = AccelerateInterpolator()
+        animMoves.setDuration(350)
+        return animMoves
+    }
+
+    fun genCollideToGameOverAnim(): Animator {
+        try {
+            AnalyticsMaster.getTracker(this).send(HitBuilders.EventBuilder()
+                    .setCategory(AnalyticsMaster.CATEGORY_ACTION)
+                    .setAction(AnalyticsMaster.ACTION_GAME_OVER)
+                    .setLabel(AnalyticsMaster.LABEL_LEVEL)
+                    .setValue(level.toLong())
+                    .build());
+        } catch(ex: Exception) {
+            Timber.e(ex, "Analytics Exception");
+        }
+
+        var gameOverAnimator = AnimatorSet()
+        var gameScaleX = ObjectAnimator.ofFloat(grid_container, "scaleX", 1f, 0.5f)
+        var gameScaleY = ObjectAnimator.ofFloat(grid_container, "scaleY", 1f, 0.5f)
+        var scaleDownBoardsAnim = AnimatorSet()
+        scaleDownBoardsAnim.playTogether(gameScaleX, gameScaleY)
+        scaleDownBoardsAnim.interpolator = AccelerateInterpolator()
+        scaleDownBoardsAnim.setDuration(450)
+
+        var gameOverShrinkX = ObjectAnimator.ofFloat(stopped_container, "scaleX", 10f, 1f)
+        var gameOverShrinkY = ObjectAnimator.ofFloat(stopped_container, "scaleY", 10f, 1f)
+        var enterGameOver = AnimatorSet()
+        enterGameOver.playTogether(gameOverShrinkX, gameOverShrinkY)
+        enterGameOver.interpolator = AccelerateInterpolator()
+        enterGameOver.setDuration(1000L)
+        enterGameOver.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationStart(animation: Animator?) {
+                gameover = true
+            }
+
+            override fun onAnimationEnd(animation: Animator?) {
+                //Show an ad on gameover (randomly if the user is logged in)
+                if (!isLoggedIn() || random.nextBoolean()) {
+                    stopped_container.postDelayed(Runnable {
+                        if (activityResumed && interstitialAd?.isLoaded ?: false) {
+                            if (gamestarted) {
+                                actionPauseGame()
+                            }
+                            interstitialAd?.show()
+                        }
+                    }, 650)
+                } else {
+                    Toast.makeText(this@GameActivity, R.string.thanks_for_signin_in_skip_ad_blurb, Toast.LENGTH_SHORT).show()
+                }
+            }
+        })
+        gameOverAnimator.playSequentially(scaleDownBoardsAnim, enterGameOver)
+        return gameOverAnimator
+    }
+
+    fun genCollideToBlankAnim(): Animator {
+        var endScale = 0.2f
+        var gridsZoomX = ObjectAnimator.ofFloat(grid_container, "scaleX", 1f, endScale)
+        var gridsZoomY = ObjectAnimator.ofFloat(grid_container, "scaleY", 1f, endScale)
+        var gridsAlpha = ObjectAnimator.ofFloat(grid_container, "alpha", 1f, 0f)
+        var animGridsOut = AnimatorSet()
+        animGridsOut.playTogether(gridsZoomX, gridsZoomY, gridsAlpha)
+        animGridsOut.interpolator = AccelerateInterpolator()
+        animGridsOut.setDuration(450)
+        return animGridsOut
+    }
+
+    fun genBlankToLevelAnim(lvl: Int): Animator {
+        var animReenter = AnimatorSet()
+
+        var chap = GameHelper.chapterForLevel(lvl)
+        var gangerReturn = when (chap) {
+            GameHelper.Chapter.ONE -> {
+                var anim = ObjectAnimator.ofFloat(gridbinderview_blockelganger, "translationY", grid_container.height - gridbinderview_blockelganger.top.toFloat(), getDefaultGangerTransYForChapter(GameHelper.chapterForLevel(lvl)))
+                anim.addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationStart(animation: Animator?) {
+                        gridbinderview_blockelganger.translationX = getDefaultGangerTransXForChapter(chap)
+                    }
+                })
+                anim
+            }
+            GameHelper.Chapter.TWO -> {
+                var anim = ObjectAnimator.ofFloat(gridbinderview_blockelganger, "translationX", grid_container.width.toFloat(), 0f)
+                anim.addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationStart(animation: Animator?) {
+                        gridbinderview_blockelganger.translationY = getDefaultGangerTransYForChapter(chap)
+                    }
+                })
+                anim
+            }
+            GameHelper.Chapter.THREE -> {
+                var anim = ObjectAnimator.ofFloat(gridbinderview_blockelganger, "translationY", grid_container.height.toFloat(), getDefaultGangerTransYForChapter(GameHelper.chapterForLevel(lvl)))
+                anim.addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationStart(animation: Animator?) {
+                        gridbinderview_blockelganger.translationX = getDefaultGangerTransXForChapter(chap)
+                    }
+                })
+                anim
+            }
+        }
+
+        var playablePieceReturn = when (chap) {
+            GameHelper.Chapter.ONE -> {
+                var anim = ObjectAnimator.ofFloat(gridbinderview_top, "translationY", -gridbinderview_top.bottom.toFloat(), 0f)
+                anim.addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationStart(animation: Animator?) {
+                        gridbinderview_top.translationX = 0f
+                    }
+                })
+                anim
+            }
+            GameHelper.Chapter.TWO -> {
+                var topAnim = ObjectAnimator.ofFloat(gridbinderview_top, "translationY", -gridbinderview_top.bottom.toFloat(), 0f)
+                var btmAnim = ObjectAnimator.ofFloat(gridbinderview_btm, "translationY", grid_container.height - gridbinderview_btm.top.toFloat(), 0f)
+                var anim = AnimatorSet()
+                anim.playTogether(topAnim, btmAnim)
+                anim.addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationStart(animation: Animator?) {
+                        gridbinderview_top.translationX = 0f
+                        gridbinderview_btm.translationX = 0f
+                    }
+                })
+                anim
+            }
+            GameHelper.Chapter.THREE -> {
+                var anim = ObjectAnimator.ofFloat(gridbinderview_right, "translationY", -grid_container.height.toFloat(), 0f)
+                anim.addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationStart(animation: Animator?) {
+                        gridbinderview_right.translationX = 0f
+                    }
+                })
+                anim
+            }
+        }
+
+        if (chapter != chap) {
+            var chapterColorAnim = genSetColorAnimator(getColorForChapter(chap))
+            animReenter.playTogether(playablePieceReturn, gangerReturn, chapterColorAnim)
+        } else {
+            animReenter.playTogether(playablePieceReturn, gangerReturn)
+        }
+
+        animReenter.interpolator = DecelerateInterpolator()
+        animReenter.addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationStart(animation: Animator?) {
+                grid_container.scaleX = 1f
+                grid_container.scaleY = 1f
+                grid_container.alpha = 1f
+
+                if (isLoggedIn()) {
+                    if (level == 1) {
+                        Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_new_kid_on_the_block));
+                    } else if (level == 5) {
+                        Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_block_head));
+                    } else if (level == 7) {
+                        Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_knock_their_blocks_off));
+                    } else if (level == 9) {
+                        Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_block_buster));
+                    }
+                    if (noTouchStreak > 3) {
+                        Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_beat_the_block_clock));
+                    }
+                }
+
+                try {
+                    AnalyticsMaster.getTracker(this@GameActivity).send(HitBuilders.EventBuilder()
+                            .setCategory(AnalyticsMaster.CATEGORY_ACTION)
+                            .setAction(AnalyticsMaster.ACTION_LEVEL_COMPLETE)
+                            .setLabel(AnalyticsMaster.LABEL_LEVEL)
+                            .setValue(level.toLong())
+                            .build());
+                } catch(ex: Exception) {
+                    Timber.e(ex, "Analytics Exception");
+                }
+
+                level++
+                points += 100 * level
+                noTouchStreak = 0
+                initGridsForLevel(level)
+            }
+
+            override fun onAnimationEnd(animation: Animator?) {
+                subscribeToTicker()
+                if (level == 1) {
+                    setGridHelpTextShowing(true)
+                }
+
+            }
+        })
+        return animReenter
+    }
+
     /**
      * This builds a nice animation for the two sides to crash together.
      */
     fun genSmashAnim(): Animator {
-        var tCopy = GridHelper.copyGrid(topGrid)
-        var gCopy = GridHelper.copyGrid(gangerGrid)
-        var combined = GameGridHelper.combineShapes(tCopy, gCopy)
-        var topAndGangComb = combined
-        if (chapter == GameHelper.Chapter.TWO) {
-            var bCopy = GridHelper.copyGrid(btmGrid)
-            combined = GameGridHelper.combineShapes(combined, bCopy)
+        var combined = when (chapter) {
+            GameHelper.Chapter.ONE -> GameGridHelper.combineShapesVert(topGrid, gangerGrid)
+            GameHelper.Chapter.TWO -> {
+                GameGridHelper.combineShapesVert(GameGridHelper.combineShapesVert(topGrid, gangerGrid), btmGrid)
+            }
+            GameHelper.Chapter.THREE -> {
+                GameGridHelper.combineShapesHoriz(gangerGrid, rightGrid)
+            }
         }
-
-        var gOver = GameGridHelper.combinedShapeIsGameOver(combined)
-
-
-        var singleBlockHeight = gridbinderview_top.getSubGridPosition(Grid(1, 1), 0, 0).height()
-        var combinedShapeHeight = singleBlockHeight * combined.height
-        var combinedShapeTop = grid_container.height / 2f - combinedShapeHeight / 2f
-        var combinedShapeBottom = combinedShapeTop + combinedShapeHeight
-        var topTransY = combinedShapeTop - gridbinderview_top.top
-        var btmTransY = combinedShapeBottom - gridbinderview_btm.bottom
-        var gangerTransY = combinedShapeTop + singleBlockHeight * (topAndGangComb.height - gCopy.height) - gridbinderview_blockelganger.top
-
-        var animMoves = AnimatorSet()
-        var topMove = ObjectAnimator.ofFloat(gridbinderview_top, "translationY", 0f, topTransY)
-        var gangerMove = ObjectAnimator.ofFloat(gridbinderview_blockelganger, "translationY", getDefaultGangerTransYForChapter(chapter), gangerTransY)
-        if (chapter == GameHelper.Chapter.TWO) {
-            var btmMove = ObjectAnimator.ofFloat(gridbinderview_btm, "translationY", 0f, btmTransY)
-            animMoves.playTogether(topMove, gangerMove, btmMove)
-        } else {
-            animMoves.playTogether(topMove, gangerMove)
-        }
-
-        animMoves.interpolator = AccelerateInterpolator()
-        animMoves.setDuration(350)
 
         //This is the return animator
-        var animCombined = AnimatorSet()
-        if (gOver) {
-            try {
-                AnalyticsMaster.getTracker(this).send(HitBuilders.EventBuilder()
-                        .setCategory(AnalyticsMaster.CATEGORY_ACTION)
-                        .setAction(AnalyticsMaster.ACTION_GAME_OVER)
-                        .setLabel(AnalyticsMaster.LABEL_LEVEL)
-                        .setValue(level.toLong())
-                        .build());
-            } catch(ex: Exception) {
-                Timber.e(ex, "Analytics Exception");
-            }
-
-            var gameScaleX = ObjectAnimator.ofFloat(grid_container, "scaleX", 1f, 0.5f)
-            var gameScaleY = ObjectAnimator.ofFloat(grid_container, "scaleY", 1f, 0.5f)
-            var scaleDownBoardsAnim = AnimatorSet()
-            scaleDownBoardsAnim.playTogether(gameScaleX, gameScaleY)
-            scaleDownBoardsAnim.interpolator = AccelerateInterpolator()
-            scaleDownBoardsAnim.setDuration(450)
-
-            var gameOverShrinkX = ObjectAnimator.ofFloat(stopped_container, "scaleX", 10f, 1f)
-            var gameOverShrinkY = ObjectAnimator.ofFloat(stopped_container, "scaleY", 10f, 1f)
-            var enterGameOver = AnimatorSet()
-            enterGameOver.playTogether(gameOverShrinkX, gameOverShrinkY)
-            enterGameOver.interpolator = AccelerateInterpolator()
-            enterGameOver.setDuration(1000L)
-            enterGameOver.addListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationStart(animation: Animator?) {
-                    gameover = gOver
-                }
-
-                override fun onAnimationEnd(animation: Animator?) {
-                    //Show an ad on gameover (randomly if the user is logged in)
-                    if (!isLoggedIn() || random.nextBoolean()) {
-                        stopped_container.postDelayed(Runnable {
-                            if (activityResumed && interstitialAd?.isLoaded ?: false) {
-                                if (gamestarted) {
-                                    actionPauseGame()
-                                }
-                                interstitialAd?.show()
-                            }
-                        }, 650)
-                    } else {
-                        Toast.makeText(this@GameActivity, R.string.thanks_for_signin_in_skip_ad_blurb, Toast.LENGTH_SHORT).show()
-                    }
-                }
-            })
-            animCombined.playSequentially(animMoves, scaleDownBoardsAnim, enterGameOver)
+        var animators = ArrayList<Animator>()
+        animators.add(genCollideAnim(combined))
+        if (GameGridHelper.combinedShapeIsGameOver(combined)) {
+            animators.add(genCollideToGameOverAnim())
         } else {
-            var endScale = 0.2f
-            var gridsZoomX = ObjectAnimator.ofFloat(grid_container, "scaleX", 1f, endScale)
-            var gridsZoomY = ObjectAnimator.ofFloat(grid_container, "scaleY", 1f, endScale)
-            var gridsAlpha = ObjectAnimator.ofFloat(grid_container, "alpha", 1f, 0f)
-            var animGridsOut = AnimatorSet()
-            animGridsOut.playTogether(gridsZoomX, gridsZoomY, gridsAlpha)
-            animGridsOut.interpolator = AccelerateInterpolator()
-            animGridsOut.setDuration(700)
-
-            var animReenter = AnimatorSet()
-            var topReturn = ObjectAnimator.ofFloat(gridbinderview_top, "translationY", -gridbinderview_top.bottom.toFloat(), 0f)
-
-            var gangerReturn =
-                    if (chapter == GameHelper.Chapter.TWO || GameHelper.chapterForLevel(level + 1) == GameHelper.Chapter.TWO)
-                        ObjectAnimator.ofFloat(gridbinderview_blockelganger, "translationX", grid_container.width.toFloat(), 0f)
-                    else
-                        ObjectAnimator.ofFloat(gridbinderview_blockelganger, "translationY", grid_container.height - gridbinderview_blockelganger.top.toFloat(), getDefaultGangerTransYForChapter(GameHelper.chapterForLevel(level + 1)))
-
-
-            if (chapter == GameHelper.Chapter.TWO || GameHelper.chapterForLevel(level + 1) == GameHelper.Chapter.TWO) {
-                var btmReturn = ObjectAnimator.ofFloat(gridbinderview_btm, "translationY", grid_container.height - gridbinderview_btm.top.toFloat(), 0f)
-                if (chapter != GameHelper.Chapter.TWO && GameHelper.chapterForLevel(level + 1) == GameHelper.Chapter.TWO) {
-                    var chapterColorAnim = genSetColorAnimator(getColorForChapter(GameHelper.Chapter.TWO))
-                    animReenter.playTogether(topReturn, gangerReturn, btmReturn, chapterColorAnim)
-                } else {
-                    animReenter.playTogether(topReturn, gangerReturn, btmReturn)
-                }
-            } else {
-                animReenter.playTogether(topReturn, gangerReturn)
-            }
-
-            animReenter.interpolator = DecelerateInterpolator()
-            animReenter.addListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationStart(animation: Animator?) {
-                    grid_container.scaleX = 1f
-                    grid_container.scaleY = 1f
-                    grid_container.alpha = 1f
-
-
-                    if (isLoggedIn()) {
-                        if (level == 1) {
-                            Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_new_kid_on_the_block));
-                        } else if (level == 5) {
-                            Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_block_head));
-                        } else if (level == 7) {
-                            Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_knock_their_blocks_off));
-                        } else if (level == 9) {
-                            Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_block_buster));
-                        }
-                        if (noTouchStreak > 3) {
-                            Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_beat_the_block_clock));
-                        }
-                    }
-
-                    try {
-                        AnalyticsMaster.getTracker(this@GameActivity).send(HitBuilders.EventBuilder()
-                                .setCategory(AnalyticsMaster.CATEGORY_ACTION)
-                                .setAction(AnalyticsMaster.ACTION_LEVEL_COMPLETE)
-                                .setLabel(AnalyticsMaster.LABEL_LEVEL)
-                                .setValue(level.toLong())
-                                .build());
-                    } catch(ex: Exception) {
-                        Timber.e(ex, "Analytics Exception");
-                    }
-
-                    level++
-                    points += 100 * level
-                    noTouchStreak = 0
-                    initGridsForLevel(level)
-                }
-
-                override fun onAnimationEnd(animation: Animator?) {
-                    subscribeToTicker()
-                    if (level == 1) {
-                        setGridHelpTextShowing(true)
-                    }
-
-                }
-            })
-            animGridsOut.setDuration(450)
-            animCombined.playSequentially(animMoves, animGridsOut, animReenter)
+            animators.add(genCollideToBlankAnim())
+            animators.add(genBlankToLevelAnim(level + 1))
         }
+        var animCombined = AnimatorSet()
+        animCombined.playSequentially(animators)
         animCombined.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationStart(animation: Animator?) {
                 setGridHelpTextShowing(false)
@@ -897,29 +995,62 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
     }
 
     fun setLayoutForChapter(chap: GameHelper.Chapter) {
-        if (chapter == GameHelper.Chapter.TWO) {
-            var gangerParams = gridbinderview_blockelganger.layoutParams
-            if (gangerParams is FrameLayout.LayoutParams) {
-                gangerParams.height = (gridbinderview_top.getSubGridPosition(Grid(1, 1), 0, 0).height() * gangerGrid.height).toInt()
-                gridbinderview_blockelganger.layoutParams = gangerParams
+        when (chap) {
+            GameHelper.Chapter.ONE -> {
+                var gangerParams = gridbinderview_blockelganger.layoutParams
+                if (gangerParams is FrameLayout.LayoutParams) {
+                    gangerParams.height = resources.getDimensionPixelSize(R.dimen.grid_height)
+                    gangerParams.width = ViewGroup.LayoutParams.MATCH_PARENT
+                    gridbinderview_blockelganger.layoutParams = gangerParams
+                }
+                gridbinderview_top.visibility = View.VISIBLE
+                gridbinderview_btm.visibility = View.INVISIBLE
+                gridbinderview_right.visibility = View.INVISIBLE
             }
-            gridbinderview_btm.visibility = View.VISIBLE
-        } else {
-            var gangerParams = gridbinderview_blockelganger.layoutParams
-            if (gangerParams is FrameLayout.LayoutParams) {
-                gangerParams.height = resources.getDimensionPixelSize(R.dimen.grid_height)
-                gridbinderview_blockelganger.layoutParams = gangerParams
+            GameHelper.Chapter.TWO -> {
+                var gangerParams = gridbinderview_blockelganger.layoutParams
+                if (gangerParams is FrameLayout.LayoutParams) {
+                    gangerParams.height = (gridbinderview_top.getSubGridPosition(Grid(1, 1), 0, 0).height() * gangerGrid.height).toInt()
+                    gangerParams.width = ViewGroup.LayoutParams.MATCH_PARENT
+                    gridbinderview_blockelganger.layoutParams = gangerParams
+                }
+                gridbinderview_top.visibility = View.VISIBLE
+                gridbinderview_btm.visibility = View.VISIBLE
+                gridbinderview_right.visibility = View.INVISIBLE
             }
-            gridbinderview_btm.visibility = View.INVISIBLE
+            GameHelper.Chapter.THREE -> {
+                var gangerParams = gridbinderview_blockelganger.layoutParams
+                if (gangerParams is FrameLayout.LayoutParams) {
+                    gangerParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+                    gangerParams.width = resources.getDimensionPixelSize(R.dimen.grid_height)
+                    gridbinderview_blockelganger.layoutParams = gangerParams
+                }
+                gridbinderview_top.visibility = View.INVISIBLE
+                gridbinderview_btm.visibility = View.INVISIBLE
+                gridbinderview_right.visibility = View.VISIBLE
+            }
         }
     }
 
     fun getDefaultGangerTransYForChapter(chap: GameHelper.Chapter): Float {
-        if (chap == GameHelper.Chapter.ONE) {
-            var top = grid_container.height / 2f - resources.getDimensionPixelSize(R.dimen.grid_height) / 2f
-            return grid_container.height - resources.getDimensionPixelSize(R.dimen.keyline_one).toFloat() - resources.getDimensionPixelSize(R.dimen.grid_height) - top
+        return when (chap) {
+            GameHelper.Chapter.ONE -> {
+                //Ganger towards bottom
+                var top = grid_container.height / 2f - resources.getDimensionPixelSize(R.dimen.grid_height) / 2f
+                grid_container.height - resources.getDimensionPixelSize(R.dimen.keyline_one).toFloat() - resources.getDimensionPixelSize(R.dimen.grid_height) - top
+            }
+            else -> 0f
         }
-        return 0f
+    }
+
+    fun getDefaultGangerTransXForChapter(chap: GameHelper.Chapter): Float {
+        return when (chap) {
+            GameHelper.Chapter.THREE -> {
+                //Ganger towards left
+                resources.getDimensionPixelSize(R.dimen.keyline_one) - gridbinderview_blockelganger.left.toFloat()
+            }
+            else -> 0f
+        }
     }
 
     /**

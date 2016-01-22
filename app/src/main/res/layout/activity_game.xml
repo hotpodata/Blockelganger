@@ -176,6 +176,14 @@
                         android:layout_marginRight="@dimen/keyline_one"
                         android:visibility="gone" />
 
+                    <com.hotpodata.blocklib.view.GridBinderView
+                        android:id="@+id/gridbinderview_right"
+                        android:layout_width="@dimen/grid_height"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="right"
+                        android:layout_marginRight="@dimen/keyline_one"
+                        android:visibility="gone" />
+
                     <TextView
                         android:id="@+id/grid_help_text"
                         android:layout_width="match_parent"

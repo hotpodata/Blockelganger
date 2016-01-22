@@ -17,10 +17,12 @@
 
     <color name="chapter_one_color">@color/colorPrimary</color>
     <color name="chapter_two_color">@color/material_deep_purple</color>
+    <color name="chapter_three_color">@color/material_teal</color>
 
 
     <color name="top_grid">@color/white</color>
     <color name="btm_grid">@color/white</color>
+    <color name="right_grid">@color/white</color>
     <color name="ganger_grid">@color/white</color>
     <color name="countdown_flash_color">#33000000</color>
     <color name="countdown_text_color">@color/sidebar_text_color</color>
