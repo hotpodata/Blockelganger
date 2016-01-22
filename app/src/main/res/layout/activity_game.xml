@@ -146,24 +146,14 @@
             <View
                 android:id="@+id/countdown_flash_container"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"/>
+                android:layout_height="match_parent" />
 
-            <FrameLayout
+            <com.hotpodata.common.view.SizeAwareFrameLayout
                 android:id="@+id/grid_container"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:paddingBottom="@dimen/keyline_one"
                 android:paddingTop="@dimen/keyline_one">
-
-                <com.hotpodata.blocklib.view.GridBinderView
-                    android:id="@+id/gridbinderview_center"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/grid_double_height"
-                    android:layout_gravity="center_vertical"
-                    android:layout_marginLeft="@dimen/keyline_one"
-                    android:layout_marginRight="@dimen/keyline_one"
-                    android:visibility="invisible" />
-
 
                 <com.hotpodata.blocklib.view.GridBinderView
                     android:id="@+id/gridbinderview_top"
@@ -181,7 +171,7 @@
                     android:layout_gravity="bottom"
                     android:layout_marginLeft="@dimen/keyline_one"
                     android:layout_marginRight="@dimen/keyline_one"
-                    android:visibility="gone"/>
+                    android:visibility="gone" />
 
                 <TextView
                     android:id="@+id/grid_help_text"
@@ -201,11 +191,11 @@
                     android:id="@+id/gridbinderview_blockelganger"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/grid_height"
-                    android:layout_gravity="bottom"
+                    android:layout_gravity="center_vertical"
                     android:layout_marginLeft="@dimen/keyline_one"
                     android:layout_marginRight="@dimen/keyline_one" />
 
-            </FrameLayout>
+            </com.hotpodata.common.view.SizeAwareFrameLayout>
 
             <FrameLayout
                 android:id="@+id/start_container"

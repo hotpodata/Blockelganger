@@ -14,6 +14,7 @@ import android.view.View
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.OvershootInterpolator
+import android.widget.FrameLayout
 import android.widget.Toast
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
@@ -36,6 +37,7 @@ import com.hotpodata.blockelganger.utils.BaseGameUtils
 import com.hotpodata.blocklib.Grid
 import com.hotpodata.blocklib.GridHelper
 import com.hotpodata.common.utils.HashUtils
+import com.hotpodata.common.view.SizeAwareFrameLayout
 import kotlinx.android.synthetic.main.activity_game.*
 import rx.Observable
 import rx.Subscription
@@ -64,6 +66,12 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
             field = lvl
             sidebar_level_tv.text = "" + lvl
         }
+
+    val chapter: GameHelper.Chapter
+        get() {
+            return GameHelper.chapterForLevel(level)
+        }
+
 
     var topGrid = GameGridHelper.genFullGrid(1, 1, true)
         set(grd: Grid) {
@@ -270,7 +278,12 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         }
 
         //Reset game state
-        actionResetGame()
+        grid_container.sizeChangeListener = object : SizeAwareFrameLayout.ISizeChangeListener {
+            override fun onSizeChange(w: Int, h: Int, oldw: Int, oldh: Int) {
+                actionResetGame()
+            }
+
+        }
     }
 
     override fun onPostCreate(savedInstanceState: Bundle?) {
@@ -482,14 +495,6 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
             Games.Leaderboards.submitScore(googleApiClient, getString(R.string.leaderboard_scores), points.toLong())
         }
 
-        grid_container.scaleX = 1f
-        grid_container.scaleY = 1f
-        stopped_container.scaleX = 1f
-        stopped_container.scaleY = 1f
-        gridbinderview_top.translationY = 0f
-        gridbinderview_blockelganger.translationY = 0f
-        stopped_container.visibility = View.INVISIBLE
-
         level = 0
         points = 0
         touchedInTick = false
@@ -499,9 +504,21 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         paused = false
         gamestarted = false
 
+        setLayoutForChapter(chapter)
+
         topGrid = GameGridHelper.genFullGrid(1, 1, true)
         btmGrid = GameGridHelper.genFullGrid(1, 1, true)
         gangerGrid = GameGridHelper.genFullGrid(1, 1, true)
+
+        grid_container.scaleX = 1f
+        grid_container.scaleY = 1f
+        stopped_container.scaleX = 1f
+        stopped_container.scaleY = 1f
+        gridbinderview_top.translationY = 0f
+        gridbinderview_btm.translationY = 0f
+        gridbinderview_btm.visibility = View.GONE
+        gridbinderview_blockelganger.translationY = getDefaultGangerTransYForChapter(chapter)
+        stopped_container.visibility = View.INVISIBLE
     }
 
     /**
@@ -652,19 +669,8 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         topGrid = GameGridHelper.genGridForLevel(lvl)
         btmGrid = GameGridHelper.genGridForLevel(lvl)
         gangerGrid = GameGridHelper.genGangerForLevel(lvl)
-    }
+        setLayoutForChapter(chapter)
 
-
-    /**
-     * Figure out the y translations for the top and bottom grids respectively
-     */
-    fun getCombinedShapeGridAnimTranslations(combinedShape: Grid, singleSideHeight: Int): Pair<Float, Float> {
-        var centerBoard = Grid(combinedShape.width, singleSideHeight * 2)
-        gridbinderview_center.grid = centerBoard//We set this up so we can correctly calculate positions
-        var shapePos = gridbinderview_center.getSubGridPosition(combinedShape, 0, (centerBoard.height - combinedShape.height) / 2)
-        var topTransY = gridbinderview_center.top + shapePos.top - gridbinderview_top.top
-        var btmTransY = gridbinderview_center.top + shapePos.bottom - gridbinderview_blockelganger.bottom
-        return Pair(topTransY, btmTransY)
     }
 
 
@@ -689,9 +695,9 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         })
 
         var topMove = ObjectAnimator.ofFloat(gridbinderview_top, "translationY", gridbinderview_top.translationY, 0f)
-        var btmMove = ObjectAnimator.ofFloat(gridbinderview_blockelganger, "translationY", gridbinderview_blockelganger.translationY, 0f)
+        var gangerMove = ObjectAnimator.ofFloat(gridbinderview_blockelganger, "translationY", gridbinderview_blockelganger.translationY, getDefaultGangerTransYForChapter(GameHelper.Chapter.ONE))
         var resetTranslationsAnim = AnimatorSet()
-        resetTranslationsAnim.playTogether(topMove, btmMove)
+        resetTranslationsAnim.playTogether(topMove, gangerMove)
         resetTranslationsAnim.interpolator = AccelerateInterpolator()
         resetTranslationsAnim.setDuration(400)
 
@@ -708,13 +714,33 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         var tCopy = GridHelper.copyGrid(topGrid)
         var gCopy = GridHelper.copyGrid(gangerGrid)
         var combined = GameGridHelper.combineShapes(tCopy, gCopy)
-        var trans = getCombinedShapeGridAnimTranslations(combined, tCopy.height)
+        var topAndGangComb = combined
+        if (chapter == GameHelper.Chapter.TWO) {
+            var bCopy = GridHelper.copyGrid(btmGrid)
+            combined = GameGridHelper.combineShapes(combined, bCopy)
+        }
+
         var gOver = GameGridHelper.combinedShapeIsGameOver(combined)
 
-        var topMove = ObjectAnimator.ofFloat(gridbinderview_top, "translationY", 0f, trans.first)
-        var btmMove = ObjectAnimator.ofFloat(gridbinderview_blockelganger, "translationY", 0f, trans.second)
+
+        var singleBlockHeight = gridbinderview_top.getSubGridPosition(Grid(1, 1), 0, 0).height()
+        var combinedShapeHeight = singleBlockHeight * combined.height
+        var combinedShapeTop = grid_container.height / 2f - combinedShapeHeight / 2f
+        var combinedShapeBottom = combinedShapeTop + combinedShapeHeight
+        var topTransY = combinedShapeTop - gridbinderview_top.top
+        var btmTransY = combinedShapeBottom - gridbinderview_btm.bottom
+        var gangerTransY = combinedShapeTop + singleBlockHeight * (topAndGangComb.height - gCopy.height) - gridbinderview_blockelganger.top
+
         var animMoves = AnimatorSet()
-        animMoves.playTogether(topMove, btmMove)
+        var topMove = ObjectAnimator.ofFloat(gridbinderview_top, "translationY", 0f, topTransY)
+        var gangerMove = ObjectAnimator.ofFloat(gridbinderview_blockelganger, "translationY", getDefaultGangerTransYForChapter(chapter), gangerTransY)
+        if (chapter == GameHelper.Chapter.TWO) {
+            var btmMove = ObjectAnimator.ofFloat(gridbinderview_btm, "translationY", 0f, btmTransY)
+            animMoves.playTogether(topMove, gangerMove, btmMove)
+        } else {
+            animMoves.playTogether(topMove, gangerMove)
+        }
+
         animMoves.interpolator = AccelerateInterpolator()
         animMoves.setDuration(350)
 
@@ -778,19 +804,30 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
             animGridsOut.interpolator = AccelerateInterpolator()
             animGridsOut.setDuration(700)
 
-
-            var topReturn = ObjectAnimator.ofFloat(gridbinderview_top, "translationY", -gridbinderview_top.height.toFloat(), 0f)
-            var gangerReturn = ObjectAnimator.ofFloat(gridbinderview_blockelganger, "translationY", gridbinderview_blockelganger.height.toFloat(), 0f)
-
-
             var animReenter = AnimatorSet()
-            animReenter.playTogether(topReturn, gangerReturn)
+            var topReturn = ObjectAnimator.ofFloat(gridbinderview_top, "translationY", -gridbinderview_top.bottom.toFloat(), 0f)
+
+            var gangerReturn =
+                    if (chapter == GameHelper.Chapter.TWO || GameHelper.chapterForLevel(level + 1) == GameHelper.Chapter.TWO)
+                        ObjectAnimator.ofFloat(gridbinderview_blockelganger, "translationX", grid_container.width.toFloat(), 0f)
+                    else
+                        ObjectAnimator.ofFloat(gridbinderview_blockelganger, "translationY", grid_container.height - gridbinderview_blockelganger.top.toFloat(), getDefaultGangerTransYForChapter(GameHelper.chapterForLevel(level + 1)))
+
+
+            if (chapter == GameHelper.Chapter.TWO || GameHelper.chapterForLevel(level + 1) == GameHelper.Chapter.TWO) {
+                var btmReturn = ObjectAnimator.ofFloat(gridbinderview_btm, "translationY", grid_container.height - gridbinderview_btm.top.toFloat(), 0f)
+                animReenter.playTogether(topReturn, gangerReturn, btmReturn)
+            } else {
+                animReenter.playTogether(topReturn, gangerReturn)
+            }
+
             animReenter.interpolator = DecelerateInterpolator()
             animReenter.addListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationStart(animation: Animator?) {
                     grid_container.scaleX = 1f
                     grid_container.scaleY = 1f
                     grid_container.alpha = 1f
+
 
                     if (isLoggedIn()) {
                         if (level == 1) {
@@ -829,6 +866,7 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
                     if (level == 1) {
                         setGridHelpTextShowing(true)
                     }
+
                 }
             })
             animGridsOut.setDuration(450)
@@ -840,6 +878,32 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
             }
         })
         return animCombined
+    }
+
+    fun setLayoutForChapter(chap: GameHelper.Chapter) {
+        if (chapter == GameHelper.Chapter.TWO) {
+            var gangerParams = gridbinderview_blockelganger.layoutParams
+            if (gangerParams is FrameLayout.LayoutParams) {
+                gangerParams.height = (gridbinderview_top.getSubGridPosition(Grid(1, 1), 0, 0).height() * gangerGrid.height).toInt()
+                gridbinderview_blockelganger.layoutParams = gangerParams
+            }
+            gridbinderview_btm.visibility = View.VISIBLE
+        } else {
+            var gangerParams = gridbinderview_blockelganger.layoutParams
+            if (gangerParams is FrameLayout.LayoutParams) {
+                gangerParams.height = resources.getDimensionPixelSize(R.dimen.grid_height)
+                gridbinderview_blockelganger.layoutParams = gangerParams
+            }
+            gridbinderview_btm.visibility = View.INVISIBLE
+        }
+    }
+
+    fun getDefaultGangerTransYForChapter(chap: GameHelper.Chapter): Float {
+        if (chap == GameHelper.Chapter.ONE) {
+            var top = grid_container.height / 2f - resources.getDimensionPixelSize(R.dimen.grid_height) / 2f
+            return grid_container.height - resources.getDimensionPixelSize(R.dimen.keyline_one).toFloat() - resources.getDimensionPixelSize(R.dimen.grid_height) - top
+        }
+        return 0f
     }
 
     /**

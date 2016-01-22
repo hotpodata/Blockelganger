@@ -15,15 +15,24 @@ object GameGridHelper {
     /**
      * Build a base grid for a playable block given the level
      */
-    fun genGridForLevel(lvl: Int) : Grid{
+    fun genGridForLevel(lvl: Int): Grid {
         return genFullGrid(GameHelper.gridWidthForLevel(lvl), GameHelper.gridHeightForLevel(lvl), true)
     }
 
     /**
      * Build a blockelganger block for the given level
      */
-    fun genGangerForLevel(lvl: Int) :Grid{
-        return generateOpenTopGangerGrid(GameHelper.gangerWidthForLevel(lvl), GameHelper.gangerHeightForLevel(lvl), true)
+    fun genGangerForLevel(lvl: Int): Grid {
+        if (GameHelper.chapterForLevel(lvl) == GameHelper.Chapter.TWO) {
+            var tHeight = GameHelper.gangerHeightForLevel(lvl) / 2 + 1
+            var bHeight = GameHelper.gangerHeightForLevel(lvl) / 2 + 1
+            var top = generateOpenTopGangerGrid(GameHelper.gangerWidthForLevel(lvl), tHeight, true)
+            var btm = generateOpenBottomGangerGrid(GameHelper.gangerWidthForLevel(lvl), bHeight,true)
+            btm = GridHelper.copyGridPortion(btm,0,1,btm.width,btm.height)
+            return combineShapes(top,btm)
+        } else {
+            return generateOpenTopGangerGrid(GameHelper.gangerWidthForLevel(lvl), GameHelper.gangerHeightForLevel(lvl), true)
+        }
     }
 
 
@@ -61,13 +70,20 @@ object GameGridHelper {
         return grid
     }
 
+    /**
+     * Generate a jagged grid where the contours are on top
+     */
+    fun generateOpenBottomGangerGrid(width: Int, height: Int, filledVal: Any?): Grid {
+        return generateOpenTopGangerGrid(width, height, filledVal).rotate(true).rotate(true)
+    }
+
 
     /**
      * Use this function to smash together two grids into one
      */
     fun combineShapes(topG: Grid, btmG: Grid): Grid {
         var yOffset = 0
-        var workingBoard = Grid(topG.width, topG.height * 2)
+        var workingBoard = Grid(topG.width, topG.height + btmG.height)
         GridHelper.addGrid(workingBoard, topG, 0, 0)
         while (GridHelper.gridInBounds(workingBoard, btmG, 0, workingBoard.height - btmG.height - (yOffset + 1)) && !GridHelper.gridsCollide(workingBoard, btmG, 0, workingBoard.height - btmG.height - (yOffset + 1))) {
             yOffset++

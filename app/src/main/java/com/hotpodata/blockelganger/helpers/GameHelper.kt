@@ -5,57 +5,51 @@ package com.hotpodata.blockelganger.helpers
  */
 object GameHelper {
 
+    val CHAPTER_STEP = 6
+
     enum class Chapter {
         ONE,
         TWO
     }
 
-    fun chapterForLevel(lvl:Int) : Chapter{
-        if(lvl > 5){
+    fun chapterForLevel(lvl: Int): Chapter {
+        if (lvl >= CHAPTER_STEP) {
             return Chapter.TWO
-        }else{
+        } else {
             return Chapter.ONE
         }
     }
 
     fun gangerHeightForLevel(lvl: Int): Int {
-        if(lvl == 0){
-            return 1
+        if (chapterForLevel(lvl) == Chapter.TWO) {
+            return gridHeightForLevel(lvl) * 2 - 1
+        } else {
+            return gridHeightForLevel(lvl)
         }
-        return (lvl + 1) / 2 + 1
     }
 
     fun gangerWidthForLevel(lvl: Int): Int {
-        if(lvl == 0){
-            return 1
-        }
-        return 4 + (lvl - 1) * 2
+        return gridWidthForLevel(lvl)
     }
 
     /**
      * How tall should our grids be given the arg level
      */
     fun gridHeightForLevel(lvl: Int): Int {
-        if(lvl == 0){
-            return 1
-        }
-        return (lvl + 1) / 2 + 1
+        return (Math.max(1, lvl % CHAPTER_STEP) + 1) / 2 + 1
     }
 
     /**
      * How wide should our grids be given the arg level
      */
     fun gridWidthForLevel(lvl: Int): Int {
-        if(lvl == 0){
-            return 1
-        }
-        return 4 + (lvl - 1) * 2
+        return 4 + (Math.max(1, lvl % CHAPTER_STEP) - 1) * 2
     }
 
     /**
      * How much time in seconds should we have to solve the puzzle given the arg level
      */
     fun secondForLevel(lvl: Int): Int {
-        return lvl * 2 + 1
+        return ((gridHeightForLevel(lvl) - 1 + gridWidthForLevel(lvl)/2f).toInt() * if (chapterForLevel(lvl) == Chapter.ONE) 1f else 1.5f).toInt()
     }
 }
