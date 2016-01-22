@@ -10,14 +10,14 @@
     <color name="info_shade">#00000000</color>
     <color name="info_btn_tint">@color/white</color>
 
-    <color name="overlay_shade">#F3FFFFFF</color>
-    <color name="overlay_text">@color/settings_row_subtitle_color</color>
-    <color name="overlay_btn_text">@color/white</color>
-    <color name="overlay_btn_bg">@color/colorAccent</color>
+    <color name="overlay_shade">@color/colorPrimary</color>
+    <color name="overlay_text">@color/white</color>
+    <color name="overlay_btn_text">@color/colorPrimary</color>
+    <color name="overlay_btn_bg">@color/white</color>
 
     <color name="chapter_one_color">@color/colorPrimary</color>
     <color name="chapter_two_color">@color/material_deep_purple</color>
-    <color name="chapter_three_color">@color/material_teal</color>
+    <color name="chapter_three_color">@color/material_pink</color>
 
 
     <color name="top_grid">@color/white</color>

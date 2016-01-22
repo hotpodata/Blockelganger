@@ -373,18 +373,13 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
                 stopped_spacer.layoutParams.height = resources.getDimensionPixelSize(R.dimen.grid_height_with_margins)
                 stopped_spacer.layoutParams = stopped_spacer.layoutParams
                 stopped_container.setBackgroundColor(Color.TRANSPARENT)
-                stopped_msg_tv.setTextColor(resources.getColor(R.color.white))
-                stopped_tip_tv.setTextColor(resources.getColor(R.color.white))
-                stopped_sign_in_blurb.setTextColor(resources.getColor(R.color.white))
+                stopped_container.translationX = 0f
             } else if (pauseVis) {
                 stopped_msg_tv.text = getString(R.string.paused)
                 stopped_continue_btn.visibility = View.VISIBLE
                 stopped_spacer.layoutParams.height = 0
                 stopped_spacer.layoutParams = stopped_spacer.layoutParams
-                stopped_container.setBackgroundColor(resources.getColor(R.color.overlay_shade))
-                stopped_msg_tv.setTextColor(resources.getColor(R.color.overlay_text))
-                stopped_tip_tv.setTextColor(resources.getColor(R.color.overlay_text))
-                stopped_sign_in_blurb.setTextColor(resources.getColor(R.color.overlay_text))
+                stopped_container.setBackgroundColor(getColorForChapter(chapter))
             }
             if (googleApiClient.isConnected) {
                 stopped_signed_in_container.visibility = View.VISIBLE
@@ -400,7 +395,6 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
 
         var startVis = !gamestarted && !gameover
         start_container.visibility = if (startVis) View.VISIBLE else View.INVISIBLE
-        //supportInvalidateOptionsMenu()
 
         sidebar_play_btn.visibility = if (paused && !gameover && gamestarted) View.VISIBLE else View.GONE
         sidebar_pause_btn.visibility = if (!paused && !gameover && gamestarted) View.VISIBLE else View.GONE
@@ -1388,6 +1382,9 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
         grid_top_help_text.setTextColor(color)
         grid_btm_help_text.setTextColor(color)
         grid_right_help_text.setTextColor(color)
+        stopped_continue_btn.setTextColor(color)
+        stopped_start_over_btn.setTextColor(color)
+        stopped_leader_board_btn.setTextColor(color)
     }
 
 }
