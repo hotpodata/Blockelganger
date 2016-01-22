@@ -627,7 +627,7 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
     fun subscribeToTicker(spentSeconds: Int = 0) {
         unsubscribeFromTicker()
 
-        var seconds = GameHelper.secondForLevel(level)
+        var seconds = GameHelper.secondsForLevel(level)
         spentTicks = spentSeconds.toLong()
         subTicker = Observable.interval(1, TimeUnit.SECONDS).startWith(-1L)
                 .filter({ l -> allowGameActions() })//So we don't do anything
@@ -748,7 +748,7 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
             }
         } else if (chapter == GameHelper.Chapter.THREE) {
             var singleBlockWidth = gridbinderview_right.getSubGridPosition(Grid(1, 1), 0, 0).width()
-            var combinedShapeWidth = singleBlockWidth * combined.width
+            var combinedShapeWidth = singleBlockWidth * combined.width - 1
             var combinedShapeLeft = grid_container.width / 2f - combinedShapeWidth / 2f
             var gangerTransX = combinedShapeLeft - gridbinderview_blockelganger.left
             var rightTransX = (combinedShapeLeft + combinedShapeWidth) - gridbinderview_right.right

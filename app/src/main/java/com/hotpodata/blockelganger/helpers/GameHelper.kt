@@ -23,36 +23,36 @@ object GameHelper {
         }
     }
 
-    fun gangerHeightForLevel(lvl: Int): Int {
+    fun gangerDepthForLevel(lvl: Int): Int {
         if (chapterForLevel(lvl) == Chapter.TWO) {
-            return gridHeightForLevel(lvl) * 2 - 1
+            return gridDepthForLevel(lvl) * 2 - 1
         } else {
-            return gridHeightForLevel(lvl)
+            return gridDepthForLevel(lvl)
         }
     }
 
-    fun gangerWidthForLevel(lvl: Int): Int {
-        return gridWidthForLevel(lvl)
+    fun gangerBreadthForLevel(lvl: Int): Int {
+        return gridBreadthForLevel(lvl)
     }
 
     /**
      * How tall should our grids be given the arg level
      */
-    fun gridHeightForLevel(lvl: Int): Int {
+    fun gridDepthForLevel(lvl: Int): Int {
         return (Math.max(1, lvl % CHAPTER_STEP) + 1) / 2 + 1
     }
 
     /**
      * How wide should our grids be given the arg level
      */
-    fun gridWidthForLevel(lvl: Int): Int {
-        return 4 + (Math.max(1, lvl % CHAPTER_STEP) - 1) * 2
+    fun gridBreadthForLevel(lvl: Int): Int {
+        return 4 + (Math.max(1, lvl % CHAPTER_STEP) - 1) * if (chapterForLevel(lvl) == Chapter.THREE) 4 else 2
     }
 
     /**
      * How much time in seconds should we have to solve the puzzle given the arg level
      */
-    fun secondForLevel(lvl: Int): Int {
-        return ((gridHeightForLevel(lvl) - 1 + gridWidthForLevel(lvl) / 2f).toInt() * if (chapterForLevel(lvl) == Chapter.ONE) 1f else 1.5f).toInt()
+    fun secondsForLevel(lvl: Int): Int {
+        return ((gridDepthForLevel(lvl) - 1 + gridBreadthForLevel(lvl) / 2f).toInt() * if (chapterForLevel(lvl) == Chapter.ONE) 1f else 1.5f).toInt()
     }
 }

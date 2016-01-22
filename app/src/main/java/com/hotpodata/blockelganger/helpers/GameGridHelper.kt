@@ -19,7 +19,7 @@ object GameGridHelper {
         if (lvl <= 0) {
             return GameGridHelper.genFullGrid(1, 1, true)
         } else {
-            return genFullGrid(GameHelper.gridWidthForLevel(lvl), GameHelper.gridHeightForLevel(lvl), true)
+            return genFullGrid(GameHelper.gridBreadthForLevel(lvl), GameHelper.gridDepthForLevel(lvl), true)
         }
     }
 
@@ -32,18 +32,18 @@ object GameGridHelper {
         } else {
             return when (GameHelper.chapterForLevel(lvl)) {
                 GameHelper.Chapter.THREE -> {
-                    return generateOpenTopGangerGrid(GameHelper.gangerWidthForLevel(lvl), GameHelper.gangerHeightForLevel(lvl), true).rotate(false)
+                    return generateOpenTopGangerGrid(GameHelper.gangerBreadthForLevel(lvl), GameHelper.gangerDepthForLevel(lvl), true).rotate(false)
                 }
                 GameHelper.Chapter.TWO -> {
-                    var tHeight = GameHelper.gangerHeightForLevel(lvl) / 2 + 1
-                    var bHeight = GameHelper.gangerHeightForLevel(lvl) / 2 + 1
-                    var top = generateOpenTopGangerGrid(GameHelper.gangerWidthForLevel(lvl), tHeight, true)
-                    var btm = generateOpenBottomGangerGrid(GameHelper.gangerWidthForLevel(lvl), bHeight, true)
+                    var tHeight = GameHelper.gangerDepthForLevel(lvl) / 2 + 1
+                    var bHeight = GameHelper.gangerDepthForLevel(lvl) / 2 + 1
+                    var top = generateOpenTopGangerGrid(GameHelper.gangerBreadthForLevel(lvl), tHeight, true)
+                    var btm = generateOpenBottomGangerGrid(GameHelper.gangerBreadthForLevel(lvl), bHeight, true)
                     btm = GridHelper.copyGridPortion(btm, 0, 1, btm.width, btm.height)
                     combineShapesVert(top, btm)
                 }
                 GameHelper.Chapter.ONE -> {
-                    return generateOpenTopGangerGrid(GameHelper.gangerWidthForLevel(lvl), GameHelper.gangerHeightForLevel(lvl), true)
+                    return generateOpenTopGangerGrid(GameHelper.gangerBreadthForLevel(lvl), GameHelper.gangerDepthForLevel(lvl), true)
                 }
             }
         }
