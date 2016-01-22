@@ -17,6 +17,7 @@
     <string name="continue_game">Continue Game</string>
     <string name="start_over">Start Over</string>
     <string name="tap_here">Tap Here Now!</string>
+    <string name="and_tap_here">And Here!</string>
     <string name="countdown_points_template">+ %1$d</string>
     <string name="sign_in_blurb">Sign in to share your high scores, earn badges, view the leader board, and see FEWER ADS!</string>
     <string name="you_must_be_signed_in">You must be signed in to perform this action!</string>

@@ -185,13 +185,41 @@
                         android:visibility="gone" />
 
                     <TextView
-                        android:id="@+id/grid_help_text"
+                        android:id="@+id/grid_top_help_text"
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/grid_height"
                         android:layout_gravity="top"
                         android:layout_marginLeft="@dimen/keyline_one"
                         android:layout_marginRight="@dimen/keyline_one"
                         android:gravity="center"
+                        android:text="@string/tap_here"
+                        android:textColor="@color/colorPrimary"
+                        android:textSize="24dp"
+                        android:textStyle="bold"
+                        android:visibility="invisible" />
+
+                    <TextView
+                        android:id="@+id/grid_btm_help_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/grid_height"
+                        android:layout_gravity="bottom"
+                        android:layout_marginLeft="@dimen/keyline_one"
+                        android:layout_marginRight="@dimen/keyline_one"
+                        android:gravity="center"
+                        android:text="@string/and_tap_here"
+                        android:textColor="@color/colorPrimary"
+                        android:textSize="24dp"
+                        android:textStyle="bold"
+                        android:visibility="invisible" />
+
+                    <TextView
+                        android:id="@+id/grid_right_help_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="@dimen/grid_height"
+                        android:layout_gravity="right|center_vertical"
+                        android:layout_marginLeft="@dimen/keyline_one"
+                        android:layout_marginRight="@dimen/keyline_one"
+                        android:rotation="90"
                         android:text="@string/tap_here"
                         android:textColor="@color/colorPrimary"
                         android:textSize="24dp"

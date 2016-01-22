@@ -15,6 +15,7 @@ import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import android.widget.FrameLayout
+import android.widget.TextView
 import android.widget.Toast
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
@@ -772,9 +773,10 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
             Timber.e(ex, "Analytics Exception");
         }
 
+        var endGameScale = if (chapter == GameHelper.Chapter.THREE) 0.25f else 0.5f
         var gameOverAnimator = AnimatorSet()
-        var gameScaleX = ObjectAnimator.ofFloat(grid_container, "scaleX", 1f, 0.5f)
-        var gameScaleY = ObjectAnimator.ofFloat(grid_container, "scaleY", 1f, 0.5f)
+        var gameScaleX = ObjectAnimator.ofFloat(grid_container, "scaleX", 1f, endGameScale)
+        var gameScaleY = ObjectAnimator.ofFloat(grid_container, "scaleY", 1f, endGameScale)
         var scaleDownBoardsAnim = AnimatorSet()
         scaleDownBoardsAnim.playTogether(gameScaleX, gameScaleY)
         scaleDownBoardsAnim.interpolator = AccelerateInterpolator()
@@ -908,7 +910,7 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
             }
 
             override fun onAnimationEnd(animation: Animator?) {
-                if (!gameover && (level == 1 || level % GameHelper.CHAPTER_STEP == 0)) {
+                if (!gameover && (level == 1 || (level > 1 && level % GameHelper.CHAPTER_STEP == 0))) {
                     setGridHelpTextShowing(true)
                 }
             }
@@ -1143,15 +1145,41 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
         if (showing) {
             gridHelpTextAnim?.cancel()
 
-            var alpha = ObjectAnimator.ofFloat(grid_help_text, "rotation", 0f, -3f, 0f, 3f, 0f)
-            alpha.interpolator = OvershootInterpolator()
-            alpha.setDuration(650)
-            alpha.startDelay = delay
-            alpha.addListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationStart(animation: Animator?) {
-                    grid_help_text.visibility = View.VISIBLE
+            var helpTextTvs = ArrayList<TextView>()
+            when (chapter) {
+                GameHelper.Chapter.ONE -> {
+                    helpTextTvs.add(grid_top_help_text)
                 }
+                GameHelper.Chapter.TWO -> {
+                    helpTextTvs.add(grid_top_help_text)
+                    helpTextTvs.add(grid_btm_help_text)
+                }
+                GameHelper.Chapter.THREE -> {
+                    helpTextTvs.add(grid_right_help_text)
+                }
+            }
 
+            var wiggleAnims = ArrayList<Animator>()
+            for (tv in helpTextTvs) {
+                var wiggle = ObjectAnimator.ofFloat(tv, "rotation", tv.rotation, tv.rotation - 3f, tv.rotation, tv.rotation + 3f, tv.rotation)
+                wiggle.addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationStart(animation: Animator?) {
+                        tv.visibility = View.VISIBLE
+                    }
+
+                    override fun onAnimationCancel(animation: Animator?) {
+                        tv.visibility = View.GONE
+                    }
+                })
+                wiggleAnims.add(wiggle)
+            }
+
+            var wiggles = AnimatorSet()
+            wiggles.playTogether(wiggleAnims)
+            wiggles.interpolator = OvershootInterpolator()
+            wiggles.setDuration(650)
+            wiggles.startDelay = delay
+            wiggles.addListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: Animator?) {
                     if (gridHelpTextAnim != null) {
                         gridHelpTextAnim = null
@@ -1161,15 +1189,16 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
 
                 override fun onAnimationCancel(animation: Animator?) {
                     gridHelpTextAnim = null
-                    grid_help_text.visibility = View.GONE
                 }
             })
-            gridHelpTextAnim = alpha
-            alpha.start()
+            gridHelpTextAnim = wiggles
+            wiggles.start()
         } else {
             gridHelpTextAnim?.cancel()
             gridHelpTextAnim = null
-            grid_help_text.visibility = View.GONE
+            grid_top_help_text.visibility = View.GONE
+            grid_btm_help_text.visibility = View.GONE
+            grid_right_help_text.visibility = View.GONE
         }
     }
 
@@ -1356,7 +1385,9 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
     override fun onColorFinalized(color: Int) {
         body_container.setBackgroundColor(color)
         sideBarAdapter?.setAccentColor(color)
-        grid_help_text.setTextColor(color)
+        grid_top_help_text.setTextColor(color)
+        grid_btm_help_text.setTextColor(color)
+        grid_right_help_text.setTextColor(color)
     }
 
 }

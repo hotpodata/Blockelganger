@@ -53,6 +53,6 @@ object GameHelper {
      * How much time in seconds should we have to solve the puzzle given the arg level
      */
     fun secondForLevel(lvl: Int): Int {
-        return ((gridHeightForLevel(lvl) - 1 + gridWidthForLevel(lvl)/2f).toInt() * if (chapterForLevel(lvl) == Chapter.ONE) 1f else 1.5f).toInt()
+        return ((gridHeightForLevel(lvl) - 1 + gridWidthForLevel(lvl) / 2f).toInt() * if (chapterForLevel(lvl) == Chapter.ONE) 1f else 1.5f).toInt()
     }
 }
