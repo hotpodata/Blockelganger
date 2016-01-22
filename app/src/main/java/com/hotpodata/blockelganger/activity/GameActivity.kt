@@ -705,10 +705,14 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
         var topMove = ObjectAnimator.ofFloat(gridbinderview_top, "translationY", gridbinderview_top.translationY, 0f)
         var gangerMove = ObjectAnimator.ofFloat(gridbinderview_blockelganger, "translationY", gridbinderview_blockelganger.translationY, getDefaultGangerTransYForChapter(GameHelper.Chapter.ONE))
         var resetTranslationsAnim = AnimatorSet()
-        resetTranslationsAnim.playTogether(topMove, gangerMove)
+        if (chapter == GameHelper.Chapter.TWO) {
+            var btmMove = ObjectAnimator.ofFloat(gridbinderview_btm, "translationY", gridbinderview_btm.translationY, 0f)
+            resetTranslationsAnim.playTogether(topMove, gangerMove, btmMove)
+        } else {
+            resetTranslationsAnim.playTogether(topMove, gangerMove)
+        }
         resetTranslationsAnim.interpolator = AccelerateInterpolator()
         resetTranslationsAnim.setDuration(400)
-
 
         var combinedAnim = AnimatorSet()
         combinedAnim.playSequentially(resetZoomsAnim, resetTranslationsAnim, genHideInfoAnim(false))
@@ -798,7 +802,6 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
                     } else {
                         Toast.makeText(this@GameActivity, R.string.thanks_for_signin_in_skip_ad_blurb, Toast.LENGTH_SHORT).show()
                     }
-
                 }
             })
             animCombined.playSequentially(animMoves, scaleDownBoardsAnim, enterGameOver)
