@@ -7,352 +7,356 @@
     android:layout_height="match_parent"
     tools:context=".activity.GameActivity">
 
-    <LinearLayout
+    <FrameLayout
         android:id="@+id/body_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="horizontal">
-
-        <LinearLayout
-            android:id="@+id/sidebar"
-            android:layout_width="@dimen/sidebar_width"
-            android:layout_height="match_parent"
-            android:layout_weight="0"
-            android:background="@color/sidebar_color"
-            android:gravity="center_horizontal"
-            android:orientation="vertical">
-
-            <ImageView
-                android:id="@+id/sidebar_drawer_btn"
-                android:layout_width="@dimen/sidebar_icon_width"
-                android:layout_height="@dimen/sidebar_icon_width"
-                android:layout_marginTop="@dimen/keyline_one"
-                android:layout_weight="0"
-                android:src="@drawable/ic_dehaze_24dp"
-                android:tint="@color/sidebar_text_color" />
-
-            <ImageView
-                android:id="@+id/sidebar_help_btn"
-                android:layout_width="@dimen/sidebar_icon_width"
-                android:layout_height="@dimen/sidebar_icon_width"
-                android:layout_marginTop="@dimen/keyline_one"
-                android:layout_weight="0"
-                android:src="@drawable/ic_help_24dp"
-                android:tint="@color/sidebar_text_color" />
-
-            <ImageView
-                android:id="@+id/sidebar_play_btn"
-                android:layout_width="@dimen/sidebar_icon_width"
-                android:layout_height="@dimen/sidebar_icon_width"
-                android:layout_marginTop="@dimen/keyline_one"
-                android:layout_weight="0"
-                android:src="@drawable/ic_play_arrow_24dp"
-                android:tint="@color/sidebar_text_color" />
-
-            <ImageView
-                android:id="@+id/sidebar_pause_btn"
-                android:layout_width="@dimen/sidebar_icon_width"
-                android:layout_height="@dimen/sidebar_icon_width"
-                android:layout_marginTop="@dimen/keyline_one"
-                android:layout_weight="0"
-                android:src="@drawable/ic_pause_24dp"
-                android:tint="@color/sidebar_text_color" />
-
-
-            <FrameLayout
-                android:id="@+id/countdown_container"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_gravity="center"
-                android:layout_weight="1"
-                android:visibility="invisible">
-
-                <LinearLayout
-                    android:id="@+id/countdown_inner_container"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:gravity="center_horizontal"
-                    android:orientation="vertical">
-
-                    <me.grantland.widget.AutofitTextView
-                        android:id="@+id/countdown_tv"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:lines="1"
-                        android:singleLine="true"
-                        android:text="3"
-                        android:textColor="@color/countdown_text_color"
-                        android:textSize="56dp"
-                        android:textStyle="bold"
-                        app:sizeToFit="true" />
-
-                    <me.grantland.widget.AutofitTextView
-                        android:id="@+id/countdown_points"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:lines="1"
-                        android:singleLine="true"
-                        android:textColor="@color/countdown_text_color"
-                        android:textSize="12dp"
-                        android:textStyle="bold"
-                        app:sizeToFit="true" />
-
-                </LinearLayout>
-            </FrameLayout>
-
-            <me.grantland.widget.AutofitTextView
-                android:id="@+id/sidebar_level_tv"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/keyline_one"
-                android:layout_weight="0"
-                android:lines="1"
-                android:singleLine="true"
-                android:text="3"
-                android:textColor="@color/sidebar_text_color"
-                android:textSize="36dp"
-                android:textStyle="bold"
-                app:sizeToFit="true" />
-
-            <me.grantland.widget.AutofitTextView
-                android:id="@+id/sidebar_points_tv"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/keyline_one"
-                android:layout_weight="0"
-                android:lines="1"
-                android:singleLine="true"
-                android:text="1243"
-                android:textColor="@color/sidebar_text_color"
-                android:textSize="12dp"
-                android:textStyle="bold"
-                app:sizeToFit="true" />
-
-        </LinearLayout>
+        android:background="@color/chapter_one_color">
 
         <View
-            android:layout_width="1dp"
+            android:id="@+id/countdown_flash_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/white" />
+            android:orientation="horizontal">
 
-        <FrameLayout
-            android:id="@+id/content_container"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@color/board_bg">
-
-            <View
-                android:id="@+id/countdown_flash_container"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-
-            <com.hotpodata.common.view.SizeAwareFrameLayout
-                android:id="@+id/grid_container"
-                android:layout_width="match_parent"
+            <LinearLayout
+                android:id="@+id/sidebar"
+                android:layout_width="@dimen/sidebar_width"
                 android:layout_height="match_parent"
-                android:paddingBottom="@dimen/keyline_one"
-                android:paddingTop="@dimen/keyline_one">
-
-                <com.hotpodata.blocklib.view.GridBinderView
-                    android:id="@+id/gridbinderview_top"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/grid_height"
-                    android:layout_gravity="top"
-                    android:layout_marginLeft="@dimen/keyline_one"
-                    android:layout_marginRight="@dimen/keyline_one" />
-
-
-                <com.hotpodata.blocklib.view.GridBinderView
-                    android:id="@+id/gridbinderview_btm"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/grid_height"
-                    android:layout_gravity="bottom"
-                    android:layout_marginLeft="@dimen/keyline_one"
-                    android:layout_marginRight="@dimen/keyline_one"
-                    android:visibility="gone" />
-
-                <TextView
-                    android:id="@+id/grid_help_text"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/grid_height"
-                    android:layout_gravity="top"
-                    android:layout_marginLeft="@dimen/keyline_one"
-                    android:layout_marginRight="@dimen/keyline_one"
-                    android:gravity="center"
-                    android:text="@string/tap_here"
-                    android:textColor="@color/colorPrimary"
-                    android:textSize="24dp"
-                    android:textStyle="bold"
-                    android:visibility="invisible" />
-
-                <com.hotpodata.blocklib.view.GridBinderView
-                    android:id="@+id/gridbinderview_blockelganger"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/grid_height"
-                    android:layout_gravity="center_vertical"
-                    android:layout_marginLeft="@dimen/keyline_one"
-                    android:layout_marginRight="@dimen/keyline_one" />
-
-            </com.hotpodata.common.view.SizeAwareFrameLayout>
-
-            <FrameLayout
-                android:id="@+id/start_container"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_weight="0"
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
 
                 <ImageView
-                    android:id="@+id/play_btn"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/grid_double_height"
-                    android:layout_gravity="center_vertical"
-                    android:gravity="center"
-                    android:src="@drawable/ic_play_circle_outline_192dp"
-                    android:tint="@color/info_btn_tint" />
+                    android:id="@+id/sidebar_drawer_btn"
+                    android:layout_width="@dimen/sidebar_icon_width"
+                    android:layout_height="@dimen/sidebar_icon_width"
+                    android:layout_marginTop="@dimen/keyline_one"
+                    android:layout_weight="0"
+                    android:src="@drawable/ic_dehaze_24dp"
+                    android:tint="@color/sidebar_text_color" />
 
-            </FrameLayout>
+                <ImageView
+                    android:id="@+id/sidebar_help_btn"
+                    android:layout_width="@dimen/sidebar_icon_width"
+                    android:layout_height="@dimen/sidebar_icon_width"
+                    android:layout_marginTop="@dimen/keyline_one"
+                    android:layout_weight="0"
+                    android:src="@drawable/ic_help_24dp"
+                    android:tint="@color/sidebar_text_color" />
 
-            <RelativeLayout
-                android:id="@+id/stopped_container"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:visibility="visible">
+                <ImageView
+                    android:id="@+id/sidebar_play_btn"
+                    android:layout_width="@dimen/sidebar_icon_width"
+                    android:layout_height="@dimen/sidebar_icon_width"
+                    android:layout_marginTop="@dimen/keyline_one"
+                    android:layout_weight="0"
+                    android:src="@drawable/ic_play_arrow_24dp"
+                    android:tint="@color/sidebar_text_color" />
 
-                <View
-                    android:id="@+id/stopped_spacer"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/grid_height_with_margins"
-                    android:layout_centerInParent="true" />
-
-                <LinearLayout
-                    android:id="@+id/stopped_top_half_container"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_above="@id/stopped_spacer"
-                    android:gravity="center_vertical"
-                    android:orientation="vertical"
-                    android:visibility="visible">
-
-                    <me.grantland.widget.AutofitTextView
-                        android:id="@+id/stopped_msg_tv"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
-                        android:layout_marginLeft="@dimen/keyline_one"
-                        android:layout_marginRight="@dimen/keyline_one"
-                        android:gravity="center"
-                        android:lines="1"
-                        android:singleLine="true"
-                        android:text="@string/paused"
-                        android:textAllCaps="true"
-                        android:textColor="@color/overlay_text"
-                        android:textSize="56dp"
-                        android:textStyle="bold"
-                        app:sizeToFit="true" />
-
-                    <TextView
-                        android:id="@+id/stopped_tip_tv"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
-                        android:layout_marginLeft="@dimen/keyline_one"
-                        android:layout_marginRight="@dimen/keyline_one"
-                        android:gravity="center"
-                        android:text="@string/game_over_tip"
-                        android:textColor="@color/overlay_text"
-                        android:textSize="16dp"
-                        android:textStyle="bold" />
+                <ImageView
+                    android:id="@+id/sidebar_pause_btn"
+                    android:layout_width="@dimen/sidebar_icon_width"
+                    android:layout_height="@dimen/sidebar_icon_width"
+                    android:layout_marginTop="@dimen/keyline_one"
+                    android:layout_weight="0"
+                    android:src="@drawable/ic_pause_24dp"
+                    android:tint="@color/sidebar_text_color" />
 
 
-                </LinearLayout>
-
-
-                <LinearLayout
-                    android:id="@+id/stopped_bottom_half_container"
+                <FrameLayout
+                    android:id="@+id/countdown_container"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_below="@id/stopped_spacer"
-                    android:gravity="center_vertical"
-                    android:orientation="vertical"
-                    android:paddingTop="8dp">
-
-                    <RelativeLayout
-                        android:id="@+id/stopped_sign_in_container"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
-                        android:layout_marginLeft="@dimen/keyline_one"
-                        android:layout_marginRight="@dimen/keyline_one">
-
-                        <com.google.android.gms.common.SignInButton
-                            android:id="@+id/stopped_sign_in_button"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            app:buttonSize="wide"
-                            app:colorScheme="dark" />
-
-                        <TextView
-                            android:id="@+id/stopped_sign_in_blurb"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_below="@+id/stopped_sign_in_button"
-                            android:layout_marginTop="4dp"
-                            android:gravity="center"
-                            android:text="@string/sign_in_blurb"
-                            android:textColor="@color/overlay_text"
-                            android:textSize="14dp" />
-
-                    </RelativeLayout>
+                    android:layout_gravity="center"
+                    android:layout_weight="1"
+                    android:visibility="invisible">
 
                     <LinearLayout
-                        android:id="@+id/stopped_signed_in_container"
-                        android:layout_width="match_parent"
+                        android:id="@+id/countdown_inner_container"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
+                        android:layout_gravity="center"
+                        android:gravity="center_horizontal"
                         android:orientation="vertical">
 
-                        <Button
-                            android:id="@+id/stopped_leader_board_btn"
+                        <me.grantland.widget.AutofitTextView
+                            android:id="@+id/countdown_tv"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:lines="1"
+                            android:singleLine="true"
+                            android:text="3"
+                            android:textColor="@color/countdown_text_color"
+                            android:textSize="56dp"
+                            android:textStyle="bold"
+                            app:sizeToFit="true" />
+
+                        <me.grantland.widget.AutofitTextView
+                            android:id="@+id/countdown_points"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:lines="1"
+                            android:singleLine="true"
+                            android:textColor="@color/countdown_text_color"
+                            android:textSize="12dp"
+                            android:textStyle="bold"
+                            app:sizeToFit="true" />
+
+                    </LinearLayout>
+                </FrameLayout>
+
+                <me.grantland.widget.AutofitTextView
+                    android:id="@+id/sidebar_level_tv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/keyline_one"
+                    android:layout_weight="0"
+                    android:lines="1"
+                    android:singleLine="true"
+                    android:text="3"
+                    android:textColor="@color/sidebar_text_color"
+                    android:textSize="36dp"
+                    android:textStyle="bold"
+                    app:sizeToFit="true" />
+
+                <me.grantland.widget.AutofitTextView
+                    android:id="@+id/sidebar_points_tv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/keyline_one"
+                    android:layout_weight="0"
+                    android:lines="1"
+                    android:singleLine="true"
+                    android:text="1243"
+                    android:textColor="@color/sidebar_text_color"
+                    android:textSize="12dp"
+                    android:textStyle="bold"
+                    app:sizeToFit="true" />
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="@color/white" />
+
+            <FrameLayout
+                android:id="@+id/content_container"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1">
+
+
+                <com.hotpodata.common.view.SizeAwareFrameLayout
+                    android:id="@+id/grid_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingBottom="@dimen/keyline_one"
+                    android:paddingTop="@dimen/keyline_one">
+
+                    <com.hotpodata.blocklib.view.GridBinderView
+                        android:id="@+id/gridbinderview_top"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/grid_height"
+                        android:layout_gravity="top"
+                        android:layout_marginLeft="@dimen/keyline_one"
+                        android:layout_marginRight="@dimen/keyline_one" />
+
+                    <com.hotpodata.blocklib.view.GridBinderView
+                        android:id="@+id/gridbinderview_btm"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/grid_height"
+                        android:layout_gravity="bottom"
+                        android:layout_marginLeft="@dimen/keyline_one"
+                        android:layout_marginRight="@dimen/keyline_one"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/grid_help_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/grid_height"
+                        android:layout_gravity="top"
+                        android:layout_marginLeft="@dimen/keyline_one"
+                        android:layout_marginRight="@dimen/keyline_one"
+                        android:gravity="center"
+                        android:text="@string/tap_here"
+                        android:textColor="@color/colorPrimary"
+                        android:textSize="24dp"
+                        android:textStyle="bold"
+                        android:visibility="invisible" />
+
+                    <com.hotpodata.blocklib.view.GridBinderView
+                        android:id="@+id/gridbinderview_blockelganger"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/grid_height"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginLeft="@dimen/keyline_one"
+                        android:layout_marginRight="@dimen/keyline_one" />
+
+                </com.hotpodata.common.view.SizeAwareFrameLayout>
+
+                <FrameLayout
+                    android:id="@+id/start_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <ImageView
+                        android:id="@+id/play_btn"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/grid_double_height"
+                        android:layout_gravity="center_vertical"
+                        android:gravity="center"
+                        android:src="@drawable/ic_play_circle_outline_192dp"
+                        android:tint="@color/info_btn_tint" />
+
+                </FrameLayout>
+
+                <RelativeLayout
+                    android:id="@+id/stopped_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:visibility="visible">
+
+                    <View
+                        android:id="@+id/stopped_spacer"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/grid_height_with_margins"
+                        android:layout_centerInParent="true" />
+
+                    <LinearLayout
+                        android:id="@+id/stopped_top_half_container"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_above="@id/stopped_spacer"
+                        android:gravity="center_vertical"
+                        android:orientation="vertical"
+                        android:visibility="visible">
+
+                        <me.grantland.widget.AutofitTextView
+                            android:id="@+id/stopped_msg_tv"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
                             android:layout_marginLeft="@dimen/keyline_one"
                             android:layout_marginRight="@dimen/keyline_one"
-                            android:layout_marginTop="@dimen/keyline_one"
-                            android:background="@color/overlay_btn_bg"
                             android:gravity="center"
-                            android:text="@string/leader_board"
-                            android:textColor="@color/overlay_btn_text" />
+                            android:lines="1"
+                            android:singleLine="true"
+                            android:text="@string/paused"
+                            android:textAllCaps="true"
+                            android:textColor="@color/overlay_text"
+                            android:textSize="56dp"
+                            android:textStyle="bold"
+                            app:sizeToFit="true" />
+
+                        <TextView
+                            android:id="@+id/stopped_tip_tv"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:layout_marginLeft="@dimen/keyline_one"
+                            android:layout_marginRight="@dimen/keyline_one"
+                            android:gravity="center"
+                            android:text="@string/game_over_tip"
+                            android:textColor="@color/overlay_text"
+                            android:textSize="16dp"
+                            android:textStyle="bold" />
+
+
                     </LinearLayout>
 
-                    <Button
-                        android:id="@+id/stopped_start_over_btn"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
-                        android:layout_marginLeft="@dimen/keyline_one"
-                        android:layout_marginRight="@dimen/keyline_one"
-                        android:background="@color/overlay_btn_bg"
-                        android:gravity="center"
-                        android:text="@string/start_over"
-                        android:textColor="@color/overlay_btn_text" />
 
-                    <Button
-                        android:id="@+id/stopped_continue_btn"
+                    <LinearLayout
+                        android:id="@+id/stopped_bottom_half_container"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
-                        android:layout_marginLeft="@dimen/keyline_one"
-                        android:layout_marginRight="@dimen/keyline_one"
-                        android:background="@color/overlay_btn_bg"
-                        android:gravity="center"
-                        android:text="@string/resume"
-                        android:textColor="@color/overlay_btn_text" />
-                </LinearLayout>
-            </RelativeLayout>
+                        android:layout_height="match_parent"
+                        android:layout_below="@id/stopped_spacer"
+                        android:gravity="center_vertical"
+                        android:orientation="vertical"
+                        android:paddingTop="8dp">
 
-        </FrameLayout>
-    </LinearLayout>
+                        <RelativeLayout
+                            android:id="@+id/stopped_sign_in_container"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:layout_marginLeft="@dimen/keyline_one"
+                            android:layout_marginRight="@dimen/keyline_one">
+
+                            <com.google.android.gms.common.SignInButton
+                                android:id="@+id/stopped_sign_in_button"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                app:buttonSize="wide"
+                                app:colorScheme="dark" />
+
+                            <TextView
+                                android:id="@+id/stopped_sign_in_blurb"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_below="@+id/stopped_sign_in_button"
+                                android:layout_marginTop="4dp"
+                                android:gravity="center"
+                                android:text="@string/sign_in_blurb"
+                                android:textColor="@color/overlay_text"
+                                android:textSize="14dp" />
+
+                        </RelativeLayout>
+
+                        <LinearLayout
+                            android:id="@+id/stopped_signed_in_container"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:orientation="vertical">
+
+                            <Button
+                                android:id="@+id/stopped_leader_board_btn"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="@dimen/keyline_one"
+                                android:layout_marginRight="@dimen/keyline_one"
+                                android:layout_marginTop="@dimen/keyline_one"
+                                android:background="@color/overlay_btn_bg"
+                                android:gravity="center"
+                                android:text="@string/leader_board"
+                                android:textColor="@color/overlay_btn_text" />
+                        </LinearLayout>
+
+                        <Button
+                            android:id="@+id/stopped_start_over_btn"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:layout_marginLeft="@dimen/keyline_one"
+                            android:layout_marginRight="@dimen/keyline_one"
+                            android:background="@color/overlay_btn_bg"
+                            android:gravity="center"
+                            android:text="@string/start_over"
+                            android:textColor="@color/overlay_btn_text" />
+
+                        <Button
+                            android:id="@+id/stopped_continue_btn"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:layout_marginLeft="@dimen/keyline_one"
+                            android:layout_marginRight="@dimen/keyline_one"
+                            android:background="@color/overlay_btn_bg"
+                            android:gravity="center"
+                            android:text="@string/resume"
+                            android:textColor="@color/overlay_btn_text" />
+                    </LinearLayout>
+                </RelativeLayout>
+
+            </FrameLayout>
+        </LinearLayout>
+    </FrameLayout>
 
 
     <android.support.v7.widget.RecyclerView

@@ -8,7 +8,6 @@ import android.graphics.Color
 import android.os.Bundle
 import android.support.v4.widget.DrawerLayout
 import android.support.v7.app.ActionBarDrawerToggle
-import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.view.View
 import android.view.animation.AccelerateInterpolator
@@ -36,6 +35,7 @@ import com.hotpodata.blockelganger.interfaces.IGooglePlayGameServicesProvider
 import com.hotpodata.blockelganger.utils.BaseGameUtils
 import com.hotpodata.blocklib.Grid
 import com.hotpodata.blocklib.GridHelper
+import com.hotpodata.common.activity.ChameleonActivity
 import com.hotpodata.common.utils.HashUtils
 import com.hotpodata.common.view.SizeAwareFrameLayout
 import kotlinx.android.synthetic.main.activity_game.*
@@ -46,7 +46,7 @@ import timber.log.Timber
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, IGooglePlayGameServicesProvider, GridTouchListener.ITouchCoordinator {
+class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, IGooglePlayGameServicesProvider, GridTouchListener.ITouchCoordinator {
 
     val REQUEST_LEADERBOARD = 1
     val REQUEST_ACHIEVEMENTS = 2
@@ -477,6 +477,13 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
 
     }
 
+    fun getColorForChapter(chapter: GameHelper.Chapter): Int {
+        return when (chapter) {
+            GameHelper.Chapter.ONE -> resources.getColor(R.color.chapter_one_color)
+            GameHelper.Chapter.TWO -> resources.getColor(R.color.chapter_two_color)
+        }
+    }
+
     /**
      * This resets the game
      */
@@ -505,6 +512,7 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         gamestarted = false
 
         setLayoutForChapter(chapter)
+        setColor(getColorForChapter(chapter), true)
 
         topGrid = GameGridHelper.genFullGrid(1, 1, true)
         btmGrid = GameGridHelper.genFullGrid(1, 1, true)
@@ -816,7 +824,12 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
 
             if (chapter == GameHelper.Chapter.TWO || GameHelper.chapterForLevel(level + 1) == GameHelper.Chapter.TWO) {
                 var btmReturn = ObjectAnimator.ofFloat(gridbinderview_btm, "translationY", grid_container.height - gridbinderview_btm.top.toFloat(), 0f)
-                animReenter.playTogether(topReturn, gangerReturn, btmReturn)
+                if (chapter != GameHelper.Chapter.TWO && GameHelper.chapterForLevel(level + 1) == GameHelper.Chapter.TWO) {
+                    var chapterColorAnim = genSetColorAnimator(getColorForChapter(GameHelper.Chapter.TWO))
+                    animReenter.playTogether(topReturn, gangerReturn, btmReturn, chapterColorAnim)
+                } else {
+                    animReenter.playTogether(topReturn, gangerReturn, btmReturn)
+                }
             } else {
                 animReenter.playTogether(topReturn, gangerReturn)
             }
@@ -1204,5 +1217,13 @@ class GameActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks, G
         interstitialAd?.loadAd(adRequest);
     }
 
+    override fun onColorUpdated(color: Int) {
+        body_container.setBackgroundColor(color)
+    }
+
+    override fun onColorFinalized(color: Int) {
+        body_container.setBackgroundColor(color)
+        sideBarAdapter?.setAccentColor(color)
+    }
 
 }
