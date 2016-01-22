@@ -16,27 +16,35 @@ object GameGridHelper {
      * Build a base grid for a playable block given the level
      */
     fun genGridForLevel(lvl: Int): Grid {
-        return genFullGrid(GameHelper.gridWidthForLevel(lvl), GameHelper.gridHeightForLevel(lvl), true)
+        if (lvl <= 0) {
+            return GameGridHelper.genFullGrid(1, 1, true)
+        } else {
+            return genFullGrid(GameHelper.gridWidthForLevel(lvl), GameHelper.gridHeightForLevel(lvl), true)
+        }
     }
 
     /**
      * Build a blockelganger block for the given level
      */
     fun genGangerForLevel(lvl: Int): Grid {
-        return when (GameHelper.chapterForLevel(lvl)) {
-            GameHelper.Chapter.THREE -> {
-                return generateOpenTopGangerGrid(GameHelper.gangerWidthForLevel(lvl), GameHelper.gangerHeightForLevel(lvl), true).rotate(false)
-            }
-            GameHelper.Chapter.TWO -> {
-                var tHeight = GameHelper.gangerHeightForLevel(lvl) / 2 + 1
-                var bHeight = GameHelper.gangerHeightForLevel(lvl) / 2 + 1
-                var top = generateOpenTopGangerGrid(GameHelper.gangerWidthForLevel(lvl), tHeight, true)
-                var btm = generateOpenBottomGangerGrid(GameHelper.gangerWidthForLevel(lvl), bHeight, true)
-                btm = GridHelper.copyGridPortion(btm, 0, 1, btm.width, btm.height)
-                combineShapesVert(top, btm)
-            }
-            GameHelper.Chapter.ONE -> {
-                return generateOpenTopGangerGrid(GameHelper.gangerWidthForLevel(lvl), GameHelper.gangerHeightForLevel(lvl), true)
+        if (lvl <= 0) {
+            return GameGridHelper.genFullGrid(1, 1, true)
+        } else {
+            return when (GameHelper.chapterForLevel(lvl)) {
+                GameHelper.Chapter.THREE -> {
+                    return generateOpenTopGangerGrid(GameHelper.gangerWidthForLevel(lvl), GameHelper.gangerHeightForLevel(lvl), true).rotate(false)
+                }
+                GameHelper.Chapter.TWO -> {
+                    var tHeight = GameHelper.gangerHeightForLevel(lvl) / 2 + 1
+                    var bHeight = GameHelper.gangerHeightForLevel(lvl) / 2 + 1
+                    var top = generateOpenTopGangerGrid(GameHelper.gangerWidthForLevel(lvl), tHeight, true)
+                    var btm = generateOpenBottomGangerGrid(GameHelper.gangerWidthForLevel(lvl), bHeight, true)
+                    btm = GridHelper.copyGridPortion(btm, 0, 1, btm.width, btm.height)
+                    combineShapesVert(top, btm)
+                }
+                GameHelper.Chapter.ONE -> {
+                    return generateOpenTopGangerGrid(GameHelper.gangerWidthForLevel(lvl), GameHelper.gangerHeightForLevel(lvl), true)
+                }
             }
         }
     }

@@ -292,9 +292,8 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
         //Reset game state
         grid_container.sizeChangeListener = object : SizeAwareFrameLayout.ISizeChangeListener {
             override fun onSizeChange(w: Int, h: Int, oldw: Int, oldh: Int) {
-                actionResetGame()
+                resetGameState()
             }
-
         }
     }
 
@@ -423,14 +422,21 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
     /**
      * Animate from the game over state, to the game started state
      */
-    fun actionRestartGame() {
-        var reset = genStartOverAnim()
-        reset.addListener(object : AnimatorListenerAdapter() {
+    fun actionResetGame() {
+        var toBlankAnim = genGameOverToBlank()
+        toBlankAnim.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationEnd(animation: Animator?) {
-                actionResetGame()
+                resetGameState()
             }
         })
-        reset.start()
+        var blankToLevelAnim = genBlankToLevelAnim(0)
+        var showInfoAnim = genHideInfoAnim(false)
+        var backToStartStateAnim = AnimatorSet()
+        backToStartStateAnim.playTogether(blankToLevelAnim, showInfoAnim)
+
+        var resetAnim = AnimatorSet()
+        resetAnim.playSequentially(toBlankAnim, backToStartStateAnim)
+        resetAnim.start()
     }
 
     /**
@@ -450,9 +456,9 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
         }
 
         if (gameover) {
-            actionRestartGame()
-        } else {
             actionResetGame()
+        } else {
+            resetGameState()
             actionStartGame()
         }
     }
@@ -500,7 +506,7 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
     /**
      * This resets the game
      */
-    fun actionResetGame() {
+    fun resetGameState() {
         unsubscribeFromTicker()
         if (actionAnimator?.isRunning ?: false) {
             actionAnimator?.cancel()
@@ -560,7 +566,6 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
             if (gridHelpTextAnim?.isStarted ?: false) {
                 gridHelpTextAnim?.pause()
             }
-
 
             try {
                 AnalyticsMaster.getTracker(this).send(HitBuilders.EventBuilder()
@@ -694,23 +699,20 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
         rightGrid = GameGridHelper.genGridForLevel(lvl).rotate(false)
         gangerGrid = GameGridHelper.genGangerForLevel(lvl)
         setLayoutForChapter(chapter)
-
     }
 
 
     /**
      * Animate away from the gameover state
      */
-    fun genStartOverAnim(): Animator {
-        var gameScaleX = ObjectAnimator.ofFloat(grid_container, "scaleX", 0.5f, 1f)
-        var gameScaleY = ObjectAnimator.ofFloat(grid_container, "scaleY", 0.5f, 1f)
+    fun genGameOverToBlank(): Animator {
         var gameOverExpandX = ObjectAnimator.ofFloat(stopped_container, "scaleX", 1f, 10f)
         var gameOverExpandY = ObjectAnimator.ofFloat(stopped_container, "scaleY", 1f, 10f)
-        var resetZoomsAnim = AnimatorSet()
-        resetZoomsAnim.playTogether(gameScaleX, gameScaleY, gameOverExpandX, gameOverExpandY)
-        resetZoomsAnim.interpolator = DecelerateInterpolator()
-        resetZoomsAnim.setDuration(650)
-        resetZoomsAnim.addListener(object : AnimatorListenerAdapter() {
+        var gameOverAnim = AnimatorSet()
+        gameOverAnim.playTogether(gameOverExpandX, gameOverExpandY)
+        gameOverAnim.interpolator = DecelerateInterpolator()
+        gameOverAnim.setDuration(650)
+        gameOverAnim.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationEnd(animation: Animator?) {
                 stopped_container.visibility = View.INVISIBLE
                 stopped_container.scaleX = 1f
@@ -718,24 +720,9 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
             }
         })
 
-        var topMove = ObjectAnimator.ofFloat(gridbinderview_top, "translationY", gridbinderview_top.translationY, 0f)
-        var gangerYMove = ObjectAnimator.ofFloat(gridbinderview_blockelganger, "translationY", gridbinderview_blockelganger.translationY, getDefaultGangerTransYForChapter(GameHelper.Chapter.ONE))
-        var gangerXMove = ObjectAnimator.ofFloat(gridbinderview_blockelganger, "translationX", gridbinderview_blockelganger.translationX, getDefaultGangerTransXForChapter(GameHelper.Chapter.ONE))
-        var gangerMove = AnimatorSet()
-        gangerMove.playTogether(gangerXMove, gangerYMove)
-        var resetTranslationsAnim = AnimatorSet()
-        if (chapter == GameHelper.Chapter.TWO) {
-            var btmMove = ObjectAnimator.ofFloat(gridbinderview_btm, "translationY", gridbinderview_btm.translationY, 0f)
-            resetTranslationsAnim.playTogether(topMove, gangerMove, btmMove)
-        } else {
-            resetTranslationsAnim.playTogether(topMove, gangerMove)
-        }
-        resetTranslationsAnim.interpolator = AccelerateInterpolator()
-        resetTranslationsAnim.setDuration(400)
-
-        var combinedAnim = AnimatorSet()
-        combinedAnim.playSequentially(resetZoomsAnim, resetTranslationsAnim, genHideInfoAnim(false))
-        return combinedAnim
+        var gameOverToBlank = AnimatorSet()
+        gameOverToBlank.playTogether(genCollideToBlankAnim(), gameOverAnim)
+        return gameOverToBlank
     }
 
     fun genCollideAnim(combined: Grid): Animator {
@@ -806,7 +793,7 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
 
             override fun onAnimationEnd(animation: Animator?) {
                 //Show an ad on gameover (randomly if the user is logged in)
-                if (!isLoggedIn() || random.nextBoolean()) {
+                if (!BuildConfig.IS_DEBUG_BUILD && (!isLoggedIn() || random.nextBoolean())) {
                     stopped_container.postDelayed(Runnable {
                         if (activityResumed && interstitialAd?.isLoaded ?: false) {
                             if (gamestarted) {
@@ -826,9 +813,9 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
 
     fun genCollideToBlankAnim(): Animator {
         var endScale = 0.2f
-        var gridsZoomX = ObjectAnimator.ofFloat(grid_container, "scaleX", 1f, endScale)
-        var gridsZoomY = ObjectAnimator.ofFloat(grid_container, "scaleY", 1f, endScale)
-        var gridsAlpha = ObjectAnimator.ofFloat(grid_container, "alpha", 1f, 0f)
+        var gridsZoomX = ObjectAnimator.ofFloat(grid_container, "scaleX", grid_container.scaleX, endScale)
+        var gridsZoomY = ObjectAnimator.ofFloat(grid_container, "scaleY", grid_container.scaleY, endScale)
+        var gridsAlpha = ObjectAnimator.ofFloat(grid_container, "alpha", grid_container.alpha, 0f)
         var animGridsOut = AnimatorSet()
         animGridsOut.playTogether(gridsZoomX, gridsZoomY, gridsAlpha)
         animGridsOut.interpolator = AccelerateInterpolator()
@@ -917,45 +904,13 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
                 grid_container.scaleX = 1f
                 grid_container.scaleY = 1f
                 grid_container.alpha = 1f
-
-                if (isLoggedIn()) {
-                    if (level == 1) {
-                        Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_new_kid_on_the_block));
-                    } else if (level == 5) {
-                        Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_block_head));
-                    } else if (level == 7) {
-                        Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_knock_their_blocks_off));
-                    } else if (level == 9) {
-                        Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_block_buster));
-                    }
-                    if (noTouchStreak > 3) {
-                        Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_beat_the_block_clock));
-                    }
-                }
-
-                try {
-                    AnalyticsMaster.getTracker(this@GameActivity).send(HitBuilders.EventBuilder()
-                            .setCategory(AnalyticsMaster.CATEGORY_ACTION)
-                            .setAction(AnalyticsMaster.ACTION_LEVEL_COMPLETE)
-                            .setLabel(AnalyticsMaster.LABEL_LEVEL)
-                            .setValue(level.toLong())
-                            .build());
-                } catch(ex: Exception) {
-                    Timber.e(ex, "Analytics Exception");
-                }
-
-                level++
-                points += 100 * level
-                noTouchStreak = 0
                 initGridsForLevel(level)
             }
 
             override fun onAnimationEnd(animation: Animator?) {
-                subscribeToTicker()
-                if (level == 1) {
+                if (!gameover && (level == 1 || level % GameHelper.CHAPTER_STEP == 0)) {
                     setGridHelpTextShowing(true)
                 }
-
             }
         })
         return animReenter
@@ -977,18 +932,62 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
 
         //This is the return animator
         var animators = ArrayList<Animator>()
-        animators.add(genCollideAnim(combined))
+        var collideAnim = genCollideAnim(combined)
+        animators.add(collideAnim)
+
+
         if (GameGridHelper.combinedShapeIsGameOver(combined)) {
             animators.add(genCollideToGameOverAnim())
         } else {
+            //If we aren't gameovering, update scores etc right after collision
+            collideAnim.addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator?) {
+                    level++
+                    points += 100 * level
+                }
+            })
             animators.add(genCollideToBlankAnim())
             animators.add(genBlankToLevelAnim(level + 1))
         }
+
         var animCombined = AnimatorSet()
         animCombined.playSequentially(animators)
         animCombined.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationStart(animation: Animator?) {
                 setGridHelpTextShowing(false)
+            }
+
+            override fun onAnimationEnd(animation: Animator?) {
+                if (isLoggedIn()) {
+                    if (level == 2) {
+                        Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_new_kid_on_the_block));
+                    } else if (level == 6) {
+                        Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_block_head));
+                    } else if (level == 8) {
+                        Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_knock_their_blocks_off));
+                    } else if (level == 10) {
+                        Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_block_buster));
+                    }
+
+                    if (noTouchStreak > 3) {
+                        Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_beat_the_block_clock));
+                    }
+                }
+
+                noTouchStreak = 0
+
+                try {
+                    AnalyticsMaster.getTracker(this@GameActivity).send(HitBuilders.EventBuilder()
+                            .setCategory(AnalyticsMaster.CATEGORY_ACTION)
+                            .setAction(AnalyticsMaster.ACTION_LEVEL_COMPLETE)
+                            .setLabel(AnalyticsMaster.LABEL_LEVEL)
+                            .setValue(level.toLong())
+                            .build());
+                } catch(ex: Exception) {
+                    Timber.e(ex, "Analytics Exception");
+                }
+
+                subscribeToTicker()
             }
         })
         return animCombined
@@ -1101,7 +1100,6 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
      */
     fun genHideInfoAnim(forward: Boolean): Animator {
         //Play btn anims
-
         var startScale = if (forward) 1f else 0.1f
         var endScale = if (forward) 0.1f else 1f
         var startAlpha = if (forward) 1f else 0f
@@ -1358,6 +1356,7 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
     override fun onColorFinalized(color: Int) {
         body_container.setBackgroundColor(color)
         sideBarAdapter?.setAccentColor(color)
+        grid_help_text.setTextColor(color)
     }
 
 }

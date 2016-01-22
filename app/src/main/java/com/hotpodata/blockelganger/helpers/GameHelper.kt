@@ -5,7 +5,7 @@ package com.hotpodata.blockelganger.helpers
  */
 object GameHelper {
 
-    val CHAPTER_STEP = 6
+    val CHAPTER_STEP = 5
 
     enum class Chapter {
         ONE,
