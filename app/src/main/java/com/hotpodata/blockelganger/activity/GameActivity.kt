@@ -904,7 +904,7 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
             }
 
             override fun onAnimationEnd(animation: Animator?) {
-                if (!gameover && (level == 1 || (level > 1 && level % GameHelper.CHAPTER_STEP == 0))) {
+                if (!gameover && (level == 1 || GameHelper.levelIsChapterStart(level))) {
                     setGridHelpTextShowing(true)
                 }
             }
