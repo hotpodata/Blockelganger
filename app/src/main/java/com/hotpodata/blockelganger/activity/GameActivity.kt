@@ -791,17 +791,19 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
 
             override fun onAnimationEnd(animation: Animator?) {
                 //Show an ad on gameover (randomly if the user is logged in)
-                if (BuildConfig.IS_DEBUG_BUILD || (!isLoggedIn() || random.nextBoolean())) {
-                    stopped_container.postDelayed(Runnable {
-                        if (activityResumed && interstitialAd?.isLoaded ?: false) {
-                            if (gamestarted) {
-                                actionPauseGame()
+                if (!BuildConfig.IS_PRO) {
+                    if (BuildConfig.IS_DEBUG_BUILD || (!isLoggedIn() || random.nextBoolean())) {
+                        stopped_container.postDelayed(Runnable {
+                            if (activityResumed && interstitialAd?.isLoaded ?: false) {
+                                if (gamestarted) {
+                                    actionPauseGame()
+                                }
+                                interstitialAd?.show()
                             }
-                            interstitialAd?.show()
-                        }
-                    }, 650)
-                } else {
-                    Toast.makeText(this@GameActivity, R.string.thanks_for_signin_in_skip_ad_blurb, Toast.LENGTH_SHORT).show()
+                        }, 650)
+                    } else {
+                        Toast.makeText(this@GameActivity, R.string.thanks_for_signin_in_skip_ad_blurb, Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         })
@@ -1142,6 +1144,7 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
             gridHelpTextAnim?.cancel()
 
             var helpTextTvs = ArrayList<TextView>()
+            var startRotation = 0f
             when (chapter) {
                 GameHelper.Chapter.ONE -> {
                     helpTextTvs.add(grid_top_help_text)
@@ -1152,12 +1155,13 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
                 }
                 GameHelper.Chapter.THREE -> {
                     helpTextTvs.add(grid_right_help_text)
+                    startRotation = 270f
                 }
             }
 
             var wiggleAnims = ArrayList<Animator>()
             for (tv in helpTextTvs) {
-                var wiggle = ObjectAnimator.ofFloat(tv, "rotation", tv.rotation, tv.rotation - 3f, tv.rotation, tv.rotation + 3f, tv.rotation)
+                var wiggle = ObjectAnimator.ofFloat(tv, "rotation", startRotation, startRotation - 3f, startRotation, startRotation + 3f, startRotation)
                 wiggle.addListener(object : AnimatorListenerAdapter() {
                     override fun onAnimationStart(animation: Animator?) {
                         tv.visibility = View.VISIBLE
@@ -1371,7 +1375,9 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
             }
             build()
         }
-        interstitialAd?.loadAd(adRequest);
+        if (!BuildConfig.IS_PRO) {
+            interstitialAd?.loadAd(adRequest);
+        }
     }
 
     override fun onColorUpdated(color: Int) {
