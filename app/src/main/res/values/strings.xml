@@ -28,7 +28,7 @@
     <string name="help">Help</string>
 
     <string name="how_to_play">How to defeat your blockelgänger</string>
-    <string name="how_to_play_step_one">&#8226;When the clock starts counting down, carve the top block to <b>FIT TOGETHER WITH</b> the bottom block.</string>
+    <string name="how_to_play_step_one">&#8226;When the clock starts counting down, carve your block(s) to <b>FIT TOGETHER WITH</b> the blockelgänger block.</string>
     <string name="how_to_play_step_two">&#8226;Repeat! Now go crush your blockelgänger!</string>
 
     <string name="signin_error">Error signing in!</string>
@@ -37,65 +37,4 @@
     <string name="license_failed">License check failed.</string>
     <string name="unknown_error">Unknown error.</string>
 
-
-    <string name="drawer_open">Drawer Open</string>
-    <string name="drawer_closed">Drawer Closed</string>
-
-    <string name="actions">Actions</string>
-
-    <string name="visit_website">Visit Hot PoData</string>
-    <string name="visit_website_blurb">Visit our website, read our blog, get updates.</string>
-    <string name="website_url">http://www.hotpodata.com</string>
-
-    <string name="follow_us_on_twitter">Follow us on twitter</string>
-    <string name="twitter_handle">\@hotpodata</string>
-    <string name="twitter_url">https://twitter.com/hotpodata</string>
-
-    <string name="follow_on_github">Follow us on github</string>
-    <string name="github_url">https://github.com/hotpodata</string>
-
-    <string name="apps">Our other apps</string>
-    <string name="redchain">RedChain</string>
-    <string name="redchain_desc">Complete your goals every day!</string>
-    <string name="filecat">FileCat</string>
-    <string name="filecat_desc">Browse files in a colorful way!</string>
-    <string name="wikicat">WikiCat</string>
-    <string name="wikicat_desc">Browse Wiki Encyclopedia in a colorful way!</string>
-    <string name="baconmasher">BaconMasher</string>
-    <string name="baconmasher_desc">One part reddit images, one part reddit comments, mash mash mash!</string>
-    <string name="version_template">V%1$s by HotPoData LLC</string>
-
-    <string name="this_app">This App</string>
-    <string name="rate_us">Rate this app</string>
-    <string name="rate_us_blerb_template">Help spread the %1$s word!</string>
-    <string name="contact_email_addr_template">hotpodata+%1$s@gmail.com</string>
-    <string name="contact_the_developer">Contact the developer</string>
-
-    <string name="legal_heading">Legal</string>
-    <string name="legal_blurb">This software application is provided as is. Its creator(s) take no responsibility for consequences of its installation or use.</string>
-
-    <string name="acknowledgements">Acknowledgements</string>
-
-    <string name="autofittextview">AutoFitTextView</string>
-    <string name="autofittextview_license">@string/license_apache</string>
-    <string name="autofittextview_url">https://github.com/grantland/android-autofittextview</string>
-
-    <string name="rxandroid">RxAndroid</string>
-    <string name="rxandroid_license">@string/license_apache</string>
-    <string name="rxandroid_url">https://github.com/ReactiveX/RxAndroid</string>
-
-    <string name="rxjava">RxJava</string>
-    <string name="rxjava_license">@string/license_apache</string>
-    <string name="rxjava_url">https://github.com/ReactiveX/RxJava</string>
-
-    <string name="rxkotlin">RxKotlin</string>
-    <string name="rxkotlin_license">@string/license_apache</string>
-    <string name="rxkotlin_url">https://github.com/ReactiveX/RxKotlin</string>
-
-    <string name="timber">Timber</string>
-    <string name="timber_license">@string/license_apache</string>
-    <string name="timber_url">https://github.com/JakeWharton/timber</string>
-
-    <string name="license_apache">Apache 2.0</string>
-    <string name="license_mit">MIT</string>
 </resources>
