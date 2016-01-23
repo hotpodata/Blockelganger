@@ -293,7 +293,9 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
         //Reset game state
         grid_container.sizeChangeListener = object : SizeAwareFrameLayout.ISizeChangeListener {
             override fun onSizeChange(w: Int, h: Int, oldw: Int, oldh: Int) {
-                resetGameState()
+                if (w != oldw) {
+                    resetGameState()
+                }
             }
         }
     }
@@ -789,7 +791,7 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
 
             override fun onAnimationEnd(animation: Animator?) {
                 //Show an ad on gameover (randomly if the user is logged in)
-                if (!BuildConfig.IS_DEBUG_BUILD && (!isLoggedIn() || random.nextBoolean())) {
+                if (BuildConfig.IS_DEBUG_BUILD || (!isLoggedIn() || random.nextBoolean())) {
                     stopped_container.postDelayed(Runnable {
                         if (activityResumed && interstitialAd?.isLoaded ?: false) {
                             if (gamestarted) {
