@@ -55,13 +55,11 @@ android {
             applicationId "com.hotpodata.blockelganger"
             buildConfigField "boolean", "IS_PRO", "false"
             signingConfig freeSigning
-            resValue "string", "app_label", "Blockelganger"
         }
         Pro {
             applicationId "com.hotpodata.blockelganger.pro"
             buildConfigField "boolean", "IS_PRO", "true"
             signingConfig proSigning
-            resValue "string", "app_label", "Blockelganger Pro"
         }
     }
 
