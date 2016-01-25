@@ -160,28 +160,18 @@
                     android:paddingTop="@dimen/keyline_one">
 
                     <com.hotpodata.blocklib.view.GridBinderView
-                        android:id="@+id/gridbinderview_top"
+                        android:id="@+id/gridbinderview_one"
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/grid_height"
                         android:layout_gravity="top"
-                        android:layout_marginLeft="@dimen/keyline_one"
-                        android:layout_marginRight="@dimen/keyline_one" />
+                        android:layout_margin="@dimen/keyline_one" />
 
                     <com.hotpodata.blocklib.view.GridBinderView
-                        android:id="@+id/gridbinderview_btm"
+                        android:id="@+id/gridbinderview_two"
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/grid_height"
                         android:layout_gravity="bottom"
-                        android:layout_marginLeft="@dimen/keyline_one"
-                        android:layout_marginRight="@dimen/keyline_one"
-                        android:visibility="gone" />
-
-                    <com.hotpodata.blocklib.view.GridBinderView
-                        android:id="@+id/gridbinderview_right"
-                        android:layout_width="@dimen/grid_height"
-                        android:layout_height="match_parent"
-                        android:layout_gravity="right"
-                        android:layout_marginRight="@dimen/keyline_one"
+                        android:layout_margin="@dimen/keyline_one"
                         android:visibility="gone" />
 
                     <TextView
@@ -227,12 +217,18 @@
                         android:visibility="invisible" />
 
                     <com.hotpodata.blocklib.view.GridBinderView
-                        android:id="@+id/gridbinderview_blockelganger"
+                        android:id="@+id/gridbinderview_blockelganger_one"
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/grid_height"
                         android:layout_gravity="center_vertical"
-                        android:layout_marginLeft="@dimen/keyline_one"
-                        android:layout_marginRight="@dimen/keyline_one" />
+                        android:layout_margin="@dimen/keyline_one" />
+
+                    <com.hotpodata.blocklib.view.GridBinderView
+                        android:id="@+id/gridbinderview_blockelganger_two"
+                        android:layout_width="@dimen/grid_height"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center_vertical"
+                        android:layout_margin="@dimen/keyline_one" />
 
                 </com.hotpodata.common.view.SizeAwareFrameLayout>
 

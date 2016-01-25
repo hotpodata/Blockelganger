@@ -11,6 +11,7 @@ object GameHelper {
     val CHAPTER_ONE_LEVEL_THRESH = 0
     val CHAPTER_TWO_LEVEL_THRESH = 5
     val CHAPTER_THREE_LEVEL_THRESH = 10
+    val CHAPTER_FOUR_LEVEL_THRESH = 20
 
     val MIN_SECONDS_DIVISOR = 1.0f
     val MAX_SECONDS_DIVISOR = 2.5f
@@ -21,7 +22,8 @@ object GameHelper {
     enum class Chapter {
         ONE,
         TWO,
-        THREE
+        THREE,
+        FOUR
     }
 
     fun levelIsChapterStart(lvl: Int): Boolean {
@@ -42,11 +44,14 @@ object GameHelper {
             Chapter.ONE -> CHAPTER_ONE_LEVEL_THRESH
             Chapter.TWO -> CHAPTER_TWO_LEVEL_THRESH
             Chapter.THREE -> CHAPTER_THREE_LEVEL_THRESH
+            Chapter.FOUR -> CHAPTER_FOUR_LEVEL_THRESH
         }
     }
 
     fun chapterForLevel(lvl: Int): Chapter {
-        if (lvl > CHAPTER_THREE_LEVEL_THRESH) {
+        if(lvl > CHAPTER_FOUR_LEVEL_THRESH){
+            return Chapter.FOUR
+        }else if (lvl > CHAPTER_THREE_LEVEL_THRESH) {
             return Chapter.THREE
         } else if (lvl > CHAPTER_TWO_LEVEL_THRESH) {
             return Chapter.TWO
@@ -99,9 +104,12 @@ object GameHelper {
      */
     fun secondsForLevel(lvl: Int): Int {
         var activeBlocks = (gridDepthForLevel(lvl) - 1) * gridBreadthForLevel(lvl)
-        if (chapterForLevel(lvl) == Chapter.TWO) {
-            activeBlocks *= 2
+        var multiplier = when(chapterForLevel(lvl)){
+            Chapter.FOUR -> 5
+            Chapter.TWO -> 2
+            else -> 1
         }
+        activeBlocks *= multiplier
         return ((activeBlocks / secondsEvaluator.evaluate(secondsInterpolator.getInterpolation(Math.min(CHAPTER_THREE_LEVEL_THRESH, lvl) / CHAPTER_THREE_LEVEL_THRESH.toFloat()), MIN_SECONDS_DIVISOR, MAX_SECONDS_DIVISOR)).toInt())
     }
 }

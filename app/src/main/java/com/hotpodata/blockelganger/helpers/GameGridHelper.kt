@@ -31,6 +31,10 @@ object GameGridHelper {
             return GameGridHelper.genFullGrid(1, 1, true)
         } else {
             return when (GameHelper.chapterForLevel(lvl)) {
+                GameHelper.Chapter.FOUR -> {
+                    //TODO: THIS IS WRONG
+                    return generateOpenTopGangerGrid(GameHelper.gangerBreadthForLevel(lvl), GameHelper.gangerDepthForLevel(lvl), true).rotate(false)
+                }
                 GameHelper.Chapter.THREE -> {
                     return generateOpenTopGangerGrid(GameHelper.gangerBreadthForLevel(lvl), GameHelper.gangerDepthForLevel(lvl), true).rotate(false)
                 }
