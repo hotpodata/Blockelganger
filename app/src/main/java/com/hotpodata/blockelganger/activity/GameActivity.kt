@@ -264,7 +264,16 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
                 gridTwo = grid
             }
         }))
-
+        gridbinderview_blockelganger_one.setOnClickListener {
+            if (allowGridTouch()) {
+                actionEarlySmash()
+            }
+        }
+        gridbinderview_blockelganger_two.setOnClickListener {
+            if (allowGridTouch()) {
+                actionEarlySmash()
+            }
+        }
 
 
         //Set up ads..
@@ -555,6 +564,34 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
     }
 
     /**
+     * Smasn the pieces before the countdown ends
+     */
+    fun actionEarlySmash() {
+        unsubscribeFromTicker()
+        countDownAnimator?.cancel()
+
+        var tickPoints = level * 100
+        while ((GameHelper.secondsForLevel(level) - spentTicks).toInt() > 0) {
+            noTouchStreak++
+            for (i in 0..noTouchStreak) {
+                tickPoints += i * 10
+            }
+            spentTicks++
+        }
+        points += tickPoints
+        countdown_points.text = if (tickPoints > 0) getString(R.string.countdown_points_template, tickPoints) else ""
+        countdown_tv.text = "" + 0
+
+        var countdownAnim = genCountDownOutAnim(Color.WHITE)
+        countDownAnimator = countdownAnim
+        countdownAnim.start()
+
+        var anim = genSmashAnim()
+        actionAnimator = anim
+        anim.start()
+    }
+
+    /**
      * Pause the game
      */
     fun actionPauseGame() {
@@ -674,8 +711,8 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
                         }
 
                 )
-
     }
+
 
     /**
      * Stop the game loop
