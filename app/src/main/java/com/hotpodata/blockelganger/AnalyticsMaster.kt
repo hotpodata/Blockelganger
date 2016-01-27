@@ -23,6 +23,7 @@ object AnalyticsMaster : IAnalyticsProvider{
     val ACTION_RESUME = "Resume"
     val ACTION_START_OVER = "StartOver"
     val ACTION_HELP = "Help"
+    val ACTION_UPDATE_FRAG = "UpdateFragment"
     val ACTION_OPEN_DRAWER = "OpenDrawer"
     val ACTION_SIGN_IN = "SignInClicked"
     val ACTION_ACHIEVEMENTS = "AchievementsClicked"

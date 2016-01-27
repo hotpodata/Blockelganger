@@ -31,6 +31,7 @@ import com.hotpodata.blockelganger.BuildConfig
 import com.hotpodata.blockelganger.R
 import com.hotpodata.blockelganger.adapter.BlockelgangerSideBarAdapter
 import com.hotpodata.blockelganger.fragment.DialogHowToPlayFragment
+import com.hotpodata.blockelganger.fragment.DialogUpdateFragment
 import com.hotpodata.blockelganger.helpers.ColorBlockDrawer
 import com.hotpodata.blockelganger.helpers.GameGridHelper
 import com.hotpodata.blockelganger.helpers.GameHelper
@@ -41,6 +42,7 @@ import com.hotpodata.blocklib.Grid
 import com.hotpodata.blocklib.GridHelper
 import com.hotpodata.blocklib.view.GridBinderView
 import com.hotpodata.common.activity.ChameleonActivity
+import com.hotpodata.common.utils.AndroidUtils
 import com.hotpodata.common.utils.HashUtils
 import com.hotpodata.common.view.SizeAwareFrameLayout
 import kotlinx.android.synthetic.main.activity_game.*
@@ -58,7 +60,9 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
     val RC_SIGN_IN = 9001
     val STORAGE_KEY_AUTO_SIGN_IN = "STORAGE_KEY_AUTO_SIGN_IN"
     val STORAGE_KEY_LAUNCH_COUNT = "STORAGE_KEY_LAUNCH_COUNT"
+    val STORAGE_KEY_LAST_SEEN_VERSION = "STORAGE_KEY_LAST_SEEN_VERSION"
     val FTAG_HOW_TO_PLAY = "FTAG_HOW_TO_PLAY"
+    val FTAG_UPDATES = "FTAG_UPDATES"
 
     var points = 0
         set(pts: Int) {
@@ -153,6 +157,19 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
         get() {
             var sharedPref = getPreferences(Context.MODE_PRIVATE);
             return sharedPref.getInt(STORAGE_KEY_LAUNCH_COUNT, 0)
+        }
+
+    var lastSeenVersionCode: Int
+        set(launches: Int) {
+            var sharedPref = getPreferences(Context.MODE_PRIVATE);
+            with(sharedPref.edit()) {
+                putInt(STORAGE_KEY_LAST_SEEN_VERSION, launches);
+                commit()
+            }
+        }
+        get() {
+            var sharedPref = getPreferences(Context.MODE_PRIVATE);
+            return sharedPref.getInt(STORAGE_KEY_LAST_SEEN_VERSION, 0)
         }
 
     //Sign in stuff
@@ -296,8 +313,11 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
             launchCount++
             if (launchCount <= 1) {
                 showHowToPlayDialog()
+            } else if (lastSeenVersionCode < AndroidUtils.getVersionCode(this)) {
+                showUpdatesDialog(lastSeenVersionCode)
             }
         }
+        lastSeenVersionCode = AndroidUtils.getVersionCode(this)
 
         //Reset game state
         grid_container.sizeChangeListener = object : SizeAwareFrameLayout.ISizeChangeListener {
@@ -1514,6 +1534,25 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
                     .setAction(AnalyticsMaster.ACTION_HELP)
                     .setLabel(AnalyticsMaster.LABEL_LEVEL)
                     .setValue(level.toLong())
+                    .build());
+        } catch(ex: Exception) {
+            Timber.e(ex, "Analytics Exception");
+        }
+    }
+
+    fun showUpdatesDialog(backToVersion: Int) {
+        var frag: DialogUpdateFragment? = supportFragmentManager.findFragmentByTag(FTAG_UPDATES) as DialogUpdateFragment?
+        if (frag == null) {
+            frag = DialogUpdateFragment(backToVersion)
+        }
+        if (!frag.isAdded) {
+            frag.show(supportFragmentManager, FTAG_UPDATES)
+        }
+
+        try {
+            AnalyticsMaster.getTracker(this).send(HitBuilders.EventBuilder()
+                    .setCategory(AnalyticsMaster.CATEGORY_ACTION)
+                    .setAction(AnalyticsMaster.ACTION_UPDATE_FRAG)
                     .build());
         } catch(ex: Exception) {
             Timber.e(ex, "Analytics Exception");
