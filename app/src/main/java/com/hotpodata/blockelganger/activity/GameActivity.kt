@@ -460,13 +460,7 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
         } catch(ex: Exception) {
             Timber.e(ex, "Analytics Exception");
         }
-
-        if (gameover) {
-            actionResetGame()
-        } else {
-            resetGameState()
-            actionStartGame()
-        }
+        actionResetGame()
     }
 
 
