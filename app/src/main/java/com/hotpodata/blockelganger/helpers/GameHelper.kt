@@ -49,9 +49,9 @@ object GameHelper {
     }
 
     fun chapterForLevel(lvl: Int): Chapter {
-        if(lvl > CHAPTER_FOUR_LEVEL_THRESH){
+        if (lvl > CHAPTER_FOUR_LEVEL_THRESH) {
             return Chapter.FOUR
-        }else if (lvl > CHAPTER_THREE_LEVEL_THRESH) {
+        } else if (lvl > CHAPTER_THREE_LEVEL_THRESH) {
             return Chapter.THREE
         } else if (lvl > CHAPTER_TWO_LEVEL_THRESH) {
             return Chapter.TWO
@@ -104,7 +104,7 @@ object GameHelper {
      */
     fun secondsForLevel(lvl: Int): Int {
         var activeBlocks = (gridDepthForLevel(lvl) - 1) * gridBreadthForLevel(lvl)
-        var multiplier = when(chapterForLevel(lvl)){
+        var multiplier = when (chapterForLevel(lvl)) {
             Chapter.FOUR -> 5
             Chapter.TWO -> 2
             else -> 1
