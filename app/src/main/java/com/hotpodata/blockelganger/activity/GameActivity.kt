@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Color
+import android.graphics.PorterDuff
 import android.graphics.RectF
 import android.os.Bundle
 import android.support.v4.widget.DrawerLayout
@@ -17,7 +18,6 @@ import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import android.widget.FrameLayout
-import android.widget.TextView
 import android.widget.Toast
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
@@ -107,7 +107,7 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
     var random = Random()
     var actionAnimator: Animator? = null
     var countDownAnimator: Animator? = null
-    var gridHelpTextAnim: Animator? = null
+    var touchHintAnims = HashMap<View, Animator>()
 
     var sideBarAdapter: BlockelgangerSideBarAdapter? = null
     var drawerToggle: ActionBarDrawerToggle? = null
@@ -268,12 +268,12 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
             }
         }))
         gridbinderview_blockelganger_one.setOnClickListener {
-            if (allowGridTouch()) {
+            if (allowGridTouch(gridbinderview_blockelganger_one)) {
                 actionEarlySmash()
             }
         }
         gridbinderview_blockelganger_two.setOnClickListener {
-            if (allowGridTouch()) {
+            if (allowGridTouch(gridbinderview_blockelganger_two)) {
                 actionEarlySmash()
             }
         }
@@ -521,7 +521,9 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
         if (countDownAnimator?.isRunning ?: false) {
             countDownAnimator?.cancel()
         }
-        setGridHelpTextShowing(false)
+        setTouchHintShowing(touch_hint_top, false)
+        setTouchHintShowing(touch_hint_btm, false)
+        setTouchHintShowing(touch_hint_right, false)
 
         if (points > 0 && isLoggedIn()) {
             //Submit on reset, for the quitters
@@ -607,8 +609,10 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
             if (countDownAnimator?.isRunning ?: false) {
                 countDownAnimator?.pause()
             }
-            if (gridHelpTextAnim?.isStarted ?: false) {
-                gridHelpTextAnim?.pause()
+            for (touchHintAnim in touchHintAnims.values) {
+                if (touchHintAnim?.isStarted ?: false) {
+                    touchHintAnim?.pause()
+                }
             }
 
             try {
@@ -646,8 +650,10 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
                     subscribeToTicker(spentTicks.toInt())
                 }
 
-                if (gridHelpTextAnim?.isPaused ?: false) {
-                    gridHelpTextAnim?.resume()
+                for (touchHintAnim in touchHintAnims.values) {
+                    if (touchHintAnim?.isPaused ?: false) {
+                        touchHintAnim?.resume()
+                    }
                 }
             }
 
@@ -789,6 +795,7 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
                     topParams.width = ViewGroup.LayoutParams.MATCH_PARENT
                     topParams.gravity = Gravity.TOP
                     gridbinderview_one.layoutParams = topParams
+                    touch_hint_top.layoutParams = FrameLayout.LayoutParams(topParams)
                 }
 
                 var gangerParams = gridbinderview_blockelganger_one.layoutParams
@@ -817,6 +824,7 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
                     topParams.width = ViewGroup.LayoutParams.MATCH_PARENT
                     topParams.gravity = Gravity.TOP
                     gridbinderview_one.layoutParams = topParams
+                    touch_hint_top.layoutParams = FrameLayout.LayoutParams(topParams)
                 }
 
                 var btmParams = gridbinderview_two.layoutParams
@@ -825,6 +833,7 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
                     btmParams.width = ViewGroup.LayoutParams.MATCH_PARENT
                     btmParams.gravity = Gravity.BOTTOM
                     gridbinderview_two.layoutParams = btmParams
+                    touch_hint_btm.layoutParams = FrameLayout.LayoutParams(btmParams)
                 }
 
                 var gangerHeight = (gridbinderview_one.getSubGridPosition(Grid(1, 1), 0, 0).height() * gangerOneGrid.height).toInt()
@@ -854,6 +863,7 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
                     rightParams.width = thirdWidth.toInt()
                     rightParams.gravity = Gravity.RIGHT
                     gridbinderview_one.layoutParams = rightParams
+                    touch_hint_right.layoutParams = FrameLayout.LayoutParams(rightParams)
                 }
 
                 var gangerParams = gridbinderview_blockelganger_one.layoutParams
@@ -889,6 +899,7 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
                     topParams.width = (gridOne.width * blockW).toInt()
                     topParams.gravity = Gravity.TOP or Gravity.RIGHT
                     gridbinderview_one.layoutParams = topParams
+                    touch_hint_top.layoutParams = FrameLayout.LayoutParams(topParams)
                 }
 
                 var btmParams = gridbinderview_two.layoutParams
@@ -897,6 +908,7 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
                     btmParams.width = (gridTwo.width * blockW).toInt()
                     btmParams.gravity = Gravity.BOTTOM or Gravity.RIGHT
                     gridbinderview_two.layoutParams = btmParams
+                    touch_hint_btm.layoutParams = FrameLayout.LayoutParams(btmParams)
                 }
 
                 var gangerParams = gridbinderview_blockelganger_one.layoutParams
@@ -1242,7 +1254,22 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
 
             override fun onAnimationEnd(animation: Animator?) {
                 if (!gameover && (level == 1 || GameHelper.levelIsChapterStart(level))) {
-                    setGridHelpTextShowing(true)
+                    when (chap) {
+                        GameHelper.Chapter.FOUR -> {
+                            setTouchHintShowing(touch_hint_top, true)
+                            setTouchHintShowing(touch_hint_btm, true)
+                        }
+                        GameHelper.Chapter.THREE -> {
+                            setTouchHintShowing(touch_hint_right, true)
+                        }
+                        GameHelper.Chapter.TWO -> {
+                            setTouchHintShowing(touch_hint_top, true)
+                            setTouchHintShowing(touch_hint_btm, true)
+                        }
+                        GameHelper.Chapter.ONE -> {
+                            setTouchHintShowing(touch_hint_top, true)
+                        }
+                    }
                 }
             }
         })
@@ -1319,7 +1346,9 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
         animCombined.playSequentially(animators)
         animCombined.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationStart(animation: Animator?) {
-                setGridHelpTextShowing(false)
+                setTouchHintShowing(touch_hint_top, false)
+                setTouchHintShowing(touch_hint_btm, false)
+                setTouchHintShowing(touch_hint_right, false)
             }
 
             override fun onAnimationEnd(animation: Animator?) {
@@ -1441,70 +1470,35 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
         return anim
     }
 
-
-    /**
-     * This sets the visibility of the help text, and wiggles it if it's showing
-     */
-    fun setGridHelpTextShowing(showing: Boolean, delay: Long = 0) {
+    fun setTouchHintShowing(hintView: View, showing: Boolean, delay: Long = 0) {
         if (showing) {
-            gridHelpTextAnim?.cancel()
-
-            var helpTextTvs = ArrayList<TextView>()
-            var startRotation = 0f
-            when (chapter) {
-                GameHelper.Chapter.ONE -> {
-                    helpTextTvs.add(grid_top_help_text)
-                }
-                GameHelper.Chapter.TWO -> {
-                    helpTextTvs.add(grid_top_help_text)
-                    helpTextTvs.add(grid_btm_help_text)
-                }
-                GameHelper.Chapter.THREE -> {
-                    helpTextTvs.add(grid_right_help_text)
-                    startRotation = 270f
-                }
-            }
-
-            var wiggleAnims = ArrayList<Animator>()
-            for (tv in helpTextTvs) {
-                var wiggle = ObjectAnimator.ofFloat(tv, "rotation", startRotation, startRotation - 3f, startRotation, startRotation + 3f, startRotation)
-                wiggle.addListener(object : AnimatorListenerAdapter() {
-                    override fun onAnimationStart(animation: Animator?) {
-                        tv.visibility = View.VISIBLE
-                    }
-
-                    override fun onAnimationCancel(animation: Animator?) {
-                        tv.visibility = View.GONE
-                    }
-                })
-                wiggleAnims.add(wiggle)
-            }
-
-            var wiggles = AnimatorSet()
-            wiggles.playTogether(wiggleAnims)
-            wiggles.interpolator = OvershootInterpolator()
-            wiggles.setDuration(650)
-            wiggles.startDelay = delay
-            wiggles.addListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationEnd(animation: Animator?) {
-                    if (gridHelpTextAnim != null) {
-                        gridHelpTextAnim = null
-                        setGridHelpTextShowing(true, 1000)
-                    }
+            var wiggle = ObjectAnimator.ofFloat(hintView, "rotation", 0f, -5f, 0f, 5f, 0f)
+            wiggle.addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationStart(animation: Animator?) {
+                    hintView.visibility = View.VISIBLE
                 }
 
                 override fun onAnimationCancel(animation: Animator?) {
-                    gridHelpTextAnim = null
+                    hintView.visibility = View.INVISIBLE
+                    touchHintAnims.remove(hintView)
+                }
+
+                override fun onAnimationEnd(animation: Animator?) {
+                    if (touchHintAnims.containsKey(hintView)) {
+                        touchHintAnims.remove(hintView)
+                        setTouchHintShowing(hintView, true, 1000)
+                    }
                 }
             })
-            gridHelpTextAnim = wiggles
-            wiggles.start()
+            wiggle.interpolator = OvershootInterpolator()
+            wiggle.setDuration(650)
+            wiggle.startDelay = delay
+            touchHintAnims.put(hintView, wiggle)
+            wiggle.start()
         } else {
-            gridHelpTextAnim?.cancel()
-            gridHelpTextAnim = null
-            grid_top_help_text.visibility = View.GONE
-            grid_btm_help_text.visibility = View.GONE
-            grid_right_help_text.visibility = View.GONE
+            touchHintAnims.get(hintView)?.cancel()
+            touchHintAnims.remove(hintView)
+            hintView.visibility = View.INVISIBLE
         }
     }
 
@@ -1537,13 +1531,23 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
      * ITouchCoordinator
      */
 
-    override fun onGridTouched() {
+    override fun onGridTouched(view: View) {
         touchedInTick = true
         noTouchStreak = 0
-        setGridHelpTextShowing(false)
+
+        if (view == gridbinderview_one) {
+            if (chapter == GameHelper.Chapter.THREE) {
+                setTouchHintShowing(touch_hint_right, false)
+            } else {
+                setTouchHintShowing(touch_hint_top, false)
+            }
+        }
+        if (view == gridbinderview_two) {
+            setTouchHintShowing(touch_hint_btm, false)
+        }
     }
 
-    override fun allowGridTouch(): Boolean {
+    override fun allowGridTouch(view: View): Boolean {
         return allowGameActions()
     }
 
@@ -1693,9 +1697,9 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
     override fun onColorFinalized(color: Int) {
         body_container.setBackgroundColor(color)
         sideBarAdapter?.setAccentColor(color)
-        grid_top_help_text.setTextColor(color)
-        grid_btm_help_text.setTextColor(color)
-        grid_right_help_text.setTextColor(color)
+        touch_hint_top.setColorFilter(color, PorterDuff.Mode.SRC_ATOP)
+        touch_hint_btm.setColorFilter(color, PorterDuff.Mode.SRC_ATOP)
+        touch_hint_right.setColorFilter(color, PorterDuff.Mode.SRC_ATOP)
         stopped_continue_btn.setTextColor(color)
         stopped_start_over_btn.setTextColor(color)
         stopped_leader_board_btn.setTextColor(color)

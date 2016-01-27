@@ -183,46 +183,34 @@
                         android:layout_margin="@dimen/keyline_one"
                         android:visibility="gone" />
 
-                    <TextView
-                        android:id="@+id/grid_top_help_text"
+                    <ImageView
+                        android:id="@+id/touch_hint_top"
                         android:layout_width="match_parent"
-                        android:layout_height="@dimen/grid_height"
-                        android:layout_gravity="top"
-                        android:layout_marginLeft="@dimen/keyline_one"
-                        android:layout_marginRight="@dimen/keyline_one"
-                        android:gravity="center"
-                        android:text="@string/tap_here"
-                        android:textColor="@color/colorPrimary"
-                        android:textSize="24dp"
-                        android:textStyle="bold"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|center_horizontal"
+                        android:scaleType="centerInside"
+                        android:src="@drawable/ic_touch_app_black_48dp"
+                        android:tint="@color/chapter_one_color"
                         android:visibility="invisible" />
 
-                    <TextView
-                        android:id="@+id/grid_btm_help_text"
+                    <ImageView
+                        android:id="@+id/touch_hint_btm"
                         android:layout_width="match_parent"
-                        android:layout_height="@dimen/grid_height"
-                        android:layout_gravity="bottom"
-                        android:layout_marginLeft="@dimen/keyline_one"
-                        android:layout_marginRight="@dimen/keyline_one"
-                        android:gravity="center"
-                        android:text="@string/and_tap_here"
-                        android:textColor="@color/colorPrimary"
-                        android:textSize="24dp"
-                        android:textStyle="bold"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|center_horizontal"
+                        android:scaleType="centerInside"
+                        android:src="@drawable/ic_touch_app_black_48dp"
+                        android:tint="@color/chapter_one_color"
                         android:visibility="invisible" />
 
-                    <TextView
-                        android:id="@+id/grid_right_help_text"
-                        android:layout_width="wrap_content"
-                        android:layout_height="@dimen/grid_height"
+                    <ImageView
+                        android:id="@+id/touch_hint_right"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
                         android:layout_gravity="right|center_vertical"
-                        android:layout_marginLeft="@dimen/keyline_one"
-                        android:layout_marginRight="@dimen/keyline_one"
-                        android:rotation="90"
-                        android:text="@string/tap_here"
-                        android:textColor="@color/colorPrimary"
-                        android:textSize="24dp"
-                        android:textStyle="bold"
+                        android:scaleType="centerInside"
+                        android:src="@drawable/ic_touch_app_black_48dp"
+                        android:tint="@color/chapter_one_color"
                         android:visibility="invisible" />
 
                     <com.hotpodata.blocklib.view.GridBinderView

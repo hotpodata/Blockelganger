@@ -11,8 +11,8 @@ import com.hotpodata.blocklib.view.GridBinderView
 class GridTouchListener(val touchCoordinator: ITouchCoordinator, val gridChangeListener: IGridChangedListener) : View.OnTouchListener {
 
     public interface ITouchCoordinator {
-        fun onGridTouched()
-        fun allowGridTouch(): Boolean
+        fun onGridTouched(view: View)
+        fun allowGridTouch(view: View): Boolean
     }
 
     public interface IGridChangedListener {
@@ -68,10 +68,10 @@ class GridTouchListener(val touchCoordinator: ITouchCoordinator, val gridChangeL
      * The actual touch handling
      */
     override fun onTouch(gridView: View?, motionEvent: MotionEvent?): Boolean {
-        if (touchCoordinator.allowGridTouch() && motionEvent != null && gridView is GridBinderView) {
+        if (gridView != null && touchCoordinator.allowGridTouch(gridView) && motionEvent != null && gridView is GridBinderView) {
             var grid = gridView.grid
             if (grid != null) {
-                touchCoordinator.onGridTouched()
+                touchCoordinator.onGridTouched(gridView)
                 when (motionEvent.actionMasked) {
                     MotionEvent.ACTION_DOWN -> {
                         //Figure out where the touch happened and if this is to be an additive or subractive touch event
