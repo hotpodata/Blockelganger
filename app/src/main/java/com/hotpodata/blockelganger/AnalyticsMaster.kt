@@ -31,17 +31,6 @@ object AnalyticsMaster : IAnalyticsProvider{
     val ACTION_LEVEL_COMPLETE = "LevelComplete"
     val ACTION_EARLY_SMASH = "EarlySmash"
 
-    val ACTION_RATE_APP = "Rate_App"
-    val ACTION_CONTACT = "Contact"
-    val ACTION_WEBSITE = "Website"
-    val ACTION_TWITTER = "Twitter"
-    val ACTION_GITHUB = "GitHub"
-
-    val ACTION_FILECAT = "FileCat"
-    val ACTION_REDCHAIN = "RedChain"
-    val ACTION_WIKICAT = "WikiCat"
-    val ACTION_BACONMASHER = "BaconMasher"
-
     //Labels
     val LABEL_LEVEL = "Level"
     val LABEL_LAUNCH_COUNT = "LaunchCount"
