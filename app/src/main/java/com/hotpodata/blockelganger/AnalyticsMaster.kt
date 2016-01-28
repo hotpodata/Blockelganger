@@ -29,6 +29,7 @@ object AnalyticsMaster : IAnalyticsProvider{
     val ACTION_ACHIEVEMENTS = "AchievementsClicked"
     val ACTION_LEADERBOARD = "LeaderBoardClicked"
     val ACTION_LEVEL_COMPLETE = "LevelComplete"
+    val ACTION_EARLY_SMASH = "EarlySmash"
 
     val ACTION_RATE_APP = "Rate_App"
     val ACTION_CONTACT = "Contact"
@@ -44,6 +45,7 @@ object AnalyticsMaster : IAnalyticsProvider{
     //Labels
     val LABEL_LEVEL = "Level"
     val LABEL_LAUNCH_COUNT = "LaunchCount"
+    val LABEL_SECONDS_REMAINING = "SecondsRemaining"
 
     private var tracker: Tracker? = null
     public override fun getTracker(context: Context): Tracker {

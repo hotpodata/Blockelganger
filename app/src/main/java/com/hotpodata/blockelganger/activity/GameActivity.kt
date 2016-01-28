@@ -606,6 +606,21 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
         countdown_points.text = if (tickPoints > 0) getString(R.string.countdown_points_template, tickPoints) else ""
         countdown_tv.text = "" + 0
 
+        try {
+            AnalyticsMaster.getTracker(this).send(HitBuilders.EventBuilder()
+                    .setCategory(AnalyticsMaster.CATEGORY_ACTION)
+                    .setAction(AnalyticsMaster.ACTION_EARLY_SMASH)
+                    .setLabel(AnalyticsMaster.LABEL_SECONDS_REMAINING)
+                    .setValue(noTouchStreak.toLong())
+                    .build());
+        } catch(ex: Exception) {
+            Timber.e(ex, "Analytics Exception");
+        }
+
+        if (isLoggedIn()) {
+            Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_blockelbomber))
+        }
+
         var countdownAnim = genCountDownOutAnim(Color.WHITE)
         countDownAnimator = countdownAnim
         countdownAnim.start()
@@ -613,10 +628,6 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
         var anim = genSmashAnim()
         actionAnimator = anim
         anim.start()
-
-        if (isLoggedIn()) {
-            Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_blockelbomber))
-        }
     }
 
     /**
