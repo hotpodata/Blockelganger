@@ -480,6 +480,11 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
         } catch(ex: Exception) {
             Timber.e(ex, "Analytics Exception");
         }
+
+        if (isLoggedIn()) {
+            Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_block_to_the_future))
+        }
+
         actionResetGame()
     }
 
@@ -608,6 +613,10 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
         var anim = genSmashAnim()
         actionAnimator = anim
         anim.start()
+
+        if (isLoggedIn()) {
+            Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_blockelbomber))
+        }
     }
 
     /**
@@ -759,6 +768,15 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
      */
     fun initGridsForLevel(lvl: Int) {
         var chap = GameHelper.chapterForLevel(lvl)
+
+        if (isLoggedIn() && GameHelper.levelIsChapterStart(lvl)) {
+            when (chap) {
+                GameHelper.Chapter.ONE -> Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_new_kid_on_the_block))
+                GameHelper.Chapter.TWO -> Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_block_head))
+                GameHelper.Chapter.THREE -> Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_knock_their_blocks_off))
+                GameHelper.Chapter.FOUR -> Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_block_buster))
+            }
+        }
 
         if (chap == GameHelper.Chapter.FOUR) {
             //TODO: MOVE MORE OF THIS LOGIC TO GAMEGRIDHELPER
@@ -1336,6 +1354,24 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
         }
         combined = GridHelper.trim(combined)
 
+        if (isLoggedIn()) {
+            var combinedHeight = when (chapter) {
+                GameHelper.Chapter.ONE -> gridTop.height + gangCenter.height
+                GameHelper.Chapter.TWO -> gridTop.height + gangCenter.height + gridBtm.height
+                GameHelper.Chapter.THREE -> gangCenter.height + gridTop.height
+                GameHelper.Chapter.FOUR -> Math.max(gangLeft.height, gridTop.height + gridBtm.height + gangCenter.height)
+            }
+            var combinedWidth = when (chapter) {
+                GameHelper.Chapter.FOUR -> gangLeft.width + gridTop.width
+                GameHelper.Chapter.THREE -> gangCenter.width + gridTop.width
+                else -> gridTop.width
+            }
+            if (combined.height >= combinedHeight && combinedWidth >= combinedWidth) {
+                Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_writers_block))
+            }
+        }
+
+
         //This is the return animator
         var animators = ArrayList<Animator>()
         var collideAnim = genCollideAnim(combined)
@@ -1367,16 +1403,6 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
 
             override fun onAnimationEnd(animation: Animator?) {
                 if (isLoggedIn()) {
-                    if (level == 2) {
-                        Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_new_kid_on_the_block));
-                    } else if (level == 6) {
-                        Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_block_head));
-                    } else if (level == 8) {
-                        Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_knock_their_blocks_off));
-                    } else if (level == 10) {
-                        Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_block_buster));
-                    }
-
                     if (noTouchStreak > 3) {
                         Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_beat_the_block_clock));
                     }
@@ -1670,6 +1696,20 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
         }
         updateGameStateVisibilities()
         sideBarAdapter?.rebuildRowSet()
+
+
+        if (isLoggedIn()) {
+            if (launchCount > 5) {
+                Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_block_trainer))
+            }
+            if (launchCount > 20) {
+                Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_blocktage))
+            }
+            if (launchCount > 50) {
+                Games.Achievements.unlock(googleApiClient, getString(R.string.achievement_blockelbuilder))
+            }
+        }
+
     }
 
     override fun onConnectionSuspended(p0: Int) {

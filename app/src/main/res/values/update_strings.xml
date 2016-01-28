@@ -9,7 +9,7 @@
     <!-- v3 update strings -->
     <string name="v3_tap_to_fire">\u2022 <b>New:</b> Tap to fire! No more waiting while the clock ticks down!</string>
     <string name="v3_chapter_four_added">\u2022 <b>New:</b> A new level of play has been added! Multi-directional gängers are here!</string>
-    <string name="v3_new_achievements">\u2022 <b>New:</b> Unlock 10 brand new achievements!</string>
+    <string name="v3_new_achievements">\u2022 <b>New:</b> Unlock 6 brand new achievements!</string>
     <array name="v3_updates">
         <item>@string/v3_tap_to_fire</item>
         <item>@string/v3_chapter_four_added</item>

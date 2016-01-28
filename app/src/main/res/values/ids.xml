@@ -7,4 +7,11 @@
     <string name="achievement_block_head">CgkIjZm6n5YREAIQBA</string>
     <string name="achievement_knock_their_blocks_off">CgkIjZm6n5YREAIQBw</string>
     <string name="achievement_block_buster">CgkIjZm6n5YREAIQBg</string>
+
+    <string name="achievement_block_trainer">CgkIjZm6n5YREAIQDQ</string>
+    <string name="achievement_blocktage">CgkIjZm6n5YREAIQDg</string>
+    <string name="achievement_blockelbuilder">CgkIjZm6n5YREAIQDw</string>
+    <string name="achievement_block_to_the_future">CgkIjZm6n5YREAIQEA</string>
+    <string name="achievement_writers_block">CgkIjZm6n5YREAIQEQ</string>
+    <string name="achievement_blockelbomber">CgkIjZm6n5YREAIQEg</string>
 </resources>
