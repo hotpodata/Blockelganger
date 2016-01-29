@@ -7,7 +7,7 @@ import android.view.animation.DecelerateInterpolator
  * Created by jdrotos on 1/21/16.
  */
 object GameHelper {
-
+    
     val CHAPTER_ONE_LEVEL_THRESH = 0
     val CHAPTER_TWO_LEVEL_THRESH = 5
     val CHAPTER_THREE_LEVEL_THRESH = 10

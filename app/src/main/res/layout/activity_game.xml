@@ -151,83 +151,11 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1">
 
-
-                <com.hotpodata.common.view.SizeAwareFrameLayout
-                    android:id="@+id/grid_container"
+                <com.hotpodata.blockelganger.view.BlockelgangerGameBoard
+                    android:id="@+id/game_board"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:paddingBottom="@dimen/keyline_one"
-                    android:paddingTop="@dimen/keyline_one">
-
-                    <com.hotpodata.blocklib.view.GridBinderView
-                        android:id="@+id/gridbinderview_animation_coordinator"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:layout_margin="@dimen/keyline_one"
-                        android:visibility="invisible" />
-
-
-                    <com.hotpodata.blocklib.view.GridBinderView
-                        android:id="@+id/gridbinderview_one"
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/grid_height"
-                        android:layout_gravity="top"
-                        android:layout_margin="@dimen/keyline_one" />
-
-                    <com.hotpodata.blocklib.view.GridBinderView
-                        android:id="@+id/gridbinderview_two"
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/grid_height"
-                        android:layout_gravity="bottom"
-                        android:layout_margin="@dimen/keyline_one"
-                        android:visibility="gone" />
-
-                    <ImageView
-                        android:id="@+id/touch_hint_top"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="top|center_horizontal"
-                        android:scaleType="centerInside"
-                        android:src="@drawable/ic_touch_app_black_48dp"
-                        android:tint="@color/chapter_one_color"
-                        android:visibility="invisible" />
-
-                    <ImageView
-                        android:id="@+id/touch_hint_btm"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="bottom|center_horizontal"
-                        android:scaleType="centerInside"
-                        android:src="@drawable/ic_touch_app_black_48dp"
-                        android:tint="@color/chapter_one_color"
-                        android:visibility="invisible" />
-
-                    <ImageView
-                        android:id="@+id/touch_hint_right"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="right|center_vertical"
-                        android:scaleType="centerInside"
-                        android:src="@drawable/ic_touch_app_black_48dp"
-                        android:tint="@color/chapter_one_color"
-                        android:visibility="invisible" />
-
-                    <com.hotpodata.blocklib.view.GridBinderView
-                        android:id="@+id/gridbinderview_blockelganger_one"
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/grid_height"
-                        android:layout_gravity="center_vertical"
-                        android:layout_margin="@dimen/keyline_one" />
-
-                    <com.hotpodata.blocklib.view.GridBinderView
-                        android:id="@+id/gridbinderview_blockelganger_two"
-                        android:layout_width="@dimen/grid_height"
-                        android:layout_height="match_parent"
-                        android:layout_gravity="center_vertical"
-                        android:layout_margin="@dimen/keyline_one" />
-
-                </com.hotpodata.common.view.SizeAwareFrameLayout>
+                    android:layout_margin="@dimen/keyline_one" />
 
                 <FrameLayout
                     android:id="@+id/start_container"

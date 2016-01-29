@@ -32,8 +32,10 @@ object GameGridHelper {
         } else {
             return when (GameHelper.chapterForLevel(lvl)) {
                 GameHelper.Chapter.FOUR -> {
-                    //TODO: THIS IS WRONG
-                    return generateOpenTopGangerGrid(GameHelper.gangerBreadthForLevel(lvl), GameHelper.gangerDepthForLevel(lvl), true).rotate(false)
+                    var top = GameGridHelper.generateOpenTopGangerGrid(GameHelper.gangerBreadthForLevel(lvl), GameHelper.gridDepthForLevel(lvl), true)
+                    var btm = GameGridHelper.generateOpenBottomGangerGrid(GameHelper.gangerBreadthForLevel(lvl), GameHelper.gridDepthForLevel(lvl), true)
+                    btm = GridHelper.copyGridPortion(btm, 0, 1, btm.width, btm.height)
+                    GameGridHelper.combineShapesVert(top, btm)
                 }
                 GameHelper.Chapter.THREE -> {
                     return generateOpenTopGangerGrid(GameHelper.gangerBreadthForLevel(lvl), GameHelper.gangerDepthForLevel(lvl), true).rotate(false)
@@ -50,6 +52,18 @@ object GameGridHelper {
                     return generateOpenTopGangerGrid(GameHelper.gangerBreadthForLevel(lvl), GameHelper.gangerDepthForLevel(lvl), true)
                 }
             }
+        }
+    }
+
+    fun genGangerTwoForLevel(lvl: Int, gangerOneGrid: Grid): Grid {
+        if (GameHelper.chapterForLevel(lvl) == GameHelper.Chapter.FOUR) {
+            var workingGangerGridTwo = GameGridHelper.generateOpenTopGangerGrid(gangerOneGrid.height + 2, gangerOneGrid.width / 2, true).rotate(false)
+            for (i in workingGangerGridTwo.width downTo  1) {
+                GridHelper.subtractGrid(workingGangerGridTwo, gangerOneGrid, i, (workingGangerGridTwo.height - gangerOneGrid.height) / 2)
+            }
+            return workingGangerGridTwo
+        } else {
+            return Grid(1, 1)
         }
     }
 
