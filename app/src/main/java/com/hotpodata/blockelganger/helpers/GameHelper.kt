@@ -1,13 +1,15 @@
 package com.hotpodata.blockelganger.helpers
 
 import android.animation.FloatEvaluator
+import android.content.Context
 import android.view.animation.DecelerateInterpolator
+import com.hotpodata.blockelganger.R
 
 /**
  * Created by jdrotos on 1/21/16.
  */
 object GameHelper {
-    
+
     val CHAPTER_ONE_LEVEL_THRESH = 0
     val CHAPTER_TWO_LEVEL_THRESH = 5
     val CHAPTER_THREE_LEVEL_THRESH = 10
@@ -33,6 +35,15 @@ object GameHelper {
             }
         }
         return false
+    }
+
+    fun colorForChapter(ctx: Context, chapter: GameHelper.Chapter): Int {
+        return when (chapter) {
+            GameHelper.Chapter.ONE -> ctx.resources.getColor(R.color.chapter_one_color)
+            GameHelper.Chapter.TWO -> ctx.resources.getColor(R.color.chapter_two_color)
+            GameHelper.Chapter.THREE -> ctx.resources.getColor(R.color.chapter_three_color)
+            GameHelper.Chapter.FOUR -> ctx.resources.getColor(R.color.chapter_four_color)
+        }
     }
 
     fun threshForLevel(lvl: Int): Int {

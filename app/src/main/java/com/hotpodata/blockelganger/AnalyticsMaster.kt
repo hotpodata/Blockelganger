@@ -11,7 +11,8 @@ import com.hotpodata.common.interfaces.IAnalyticsProvider
 object AnalyticsMaster : IAnalyticsProvider{
 
     //SCREENS
-    val SCREEN_GAME = "BlockelGangerGame"
+    val SCREEN_SINGLE_PLAYER = "SinglePlayerGameScreen"
+    val SCREEN_LANDING = "LandingScreen"
 
     //CATEGORIES
     val CATEGORY_ACTION = "Action"
@@ -42,7 +43,6 @@ object AnalyticsMaster : IAnalyticsProvider{
                 GoogleAnalytics.getInstance(context).newTracker(R.xml.global_tracker).apply {
                     enableExceptionReporting(true)
                     enableAdvertisingIdCollection(true)
-                    enableAutoActivityTracking(true)
                 }
         tracker = t
         return t

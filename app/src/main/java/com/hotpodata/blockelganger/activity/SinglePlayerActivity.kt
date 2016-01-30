@@ -35,7 +35,7 @@ import com.hotpodata.blockelganger.view.BlockelgangerGameBoard
 import com.hotpodata.common.activity.ChameleonActivity
 import com.hotpodata.common.utils.AndroidUtils
 import com.hotpodata.common.utils.HashUtils
-import kotlinx.android.synthetic.main.activity_game.*
+import kotlinx.android.synthetic.main.activity_single_player.*
 import rx.Observable
 import rx.Subscription
 import rx.android.schedulers.AndroidSchedulers
@@ -44,6 +44,14 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 class SinglePlayerActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, IGooglePlayGameServicesProvider, GridTouchListener.ITouchCoordinator, BlockelgangerGameBoard.IGangerTouchListener {
+
+    object IntentGenerator{
+        fun generateIntent(ctx:Context):Intent{
+            var intent = Intent(ctx, SinglePlayerActivity::class.java)
+            return intent
+
+        }
+    }
 
     val REQUEST_LEADERBOARD = 1
     val REQUEST_ACHIEVEMENTS = 2
@@ -280,7 +288,7 @@ class SinglePlayerActivity : ChameleonActivity(), GoogleApiClient.ConnectionCall
     override fun onResume() {
         super.onResume()
         activityResumed = true
-        AnalyticsMaster.getTracker(this).setScreenName(AnalyticsMaster.SCREEN_GAME);
+        AnalyticsMaster.getTracker(this).setScreenName(AnalyticsMaster.SCREEN_SINGLE_PLAYER);
         AnalyticsMaster.getTracker(this).send(HitBuilders.ScreenViewBuilder().build());
     }
 

@@ -12,5 +12,7 @@ class BlockelgangerApplication : MultiDexApplication() {
         if (BuildConfig.LOGGING_ENABLED) {
             Timber.plant(Timber.DebugTree())
         }
+        //Required
+        SettingsMaster.context = this
     }
 }
