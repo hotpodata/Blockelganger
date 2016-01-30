@@ -43,7 +43,7 @@ import timber.log.Timber
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, IGooglePlayGameServicesProvider, GridTouchListener.ITouchCoordinator, BlockelgangerGameBoard.IGangerTouchListener {
+class SinglePlayerActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, IGooglePlayGameServicesProvider, GridTouchListener.ITouchCoordinator, BlockelgangerGameBoard.IGangerTouchListener {
 
     val REQUEST_LEADERBOARD = 1
     val REQUEST_ACHIEVEMENTS = 2
@@ -218,7 +218,7 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
                 }
                 drawer_layout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
                 try {
-                    AnalyticsMaster.getTracker(this@GameActivity).send(HitBuilders.EventBuilder()
+                    AnalyticsMaster.getTracker(this@SinglePlayerActivity).send(HitBuilders.EventBuilder()
                             .setCategory(AnalyticsMaster.CATEGORY_ACTION)
                             .setAction(AnalyticsMaster.ACTION_OPEN_DRAWER)
                             .setLabel(AnalyticsMaster.LABEL_LEVEL)
@@ -371,7 +371,7 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
     fun setUpLeftDrawer() {
         if (sideBarAdapter == null) {
             sideBarAdapter = with(BlockelgangerSideBarAdapter(this, this)) {
-                setAccentColor(android.support.v4.content.ContextCompat.getColor(this@GameActivity, R.color.colorPrimary))
+                setAccentColor(android.support.v4.content.ContextCompat.getColor(this@SinglePlayerActivity, R.color.colorPrimary))
                 this
             }
             left_drawer.adapter = sideBarAdapter
@@ -777,7 +777,7 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
                             }
                         }, 650)
                     } else {
-                        Toast.makeText(this@GameActivity, R.string.thanks_for_signin_in_skip_ad_blurb, Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@SinglePlayerActivity, R.string.thanks_for_signin_in_skip_ad_blurb, Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -857,7 +857,7 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
                 touchedInLevel = false
 
                 try {
-                    AnalyticsMaster.getTracker(this@GameActivity).send(HitBuilders.EventBuilder()
+                    AnalyticsMaster.getTracker(this@SinglePlayerActivity).send(HitBuilders.EventBuilder()
                             .setCategory(AnalyticsMaster.CATEGORY_ACTION)
                             .setAction(AnalyticsMaster.ACTION_LEVEL_COMPLETE)
                             .setLabel(AnalyticsMaster.LABEL_LEVEL)
@@ -1038,7 +1038,7 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
         autoStartSignInFlow = true
         googleApiClient.connect();
         try {
-            AnalyticsMaster.getTracker(this@GameActivity).send(HitBuilders.EventBuilder()
+            AnalyticsMaster.getTracker(this@SinglePlayerActivity).send(HitBuilders.EventBuilder()
                     .setCategory(AnalyticsMaster.CATEGORY_ACTION)
                     .setAction(AnalyticsMaster.ACTION_SIGN_IN)
                     .setLabel(AnalyticsMaster.LABEL_LAUNCH_COUNT)
@@ -1068,7 +1068,7 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
             Toast.makeText(this, R.string.you_must_be_signed_in, Toast.LENGTH_SHORT).show()
         }
         try {
-            AnalyticsMaster.getTracker(this@GameActivity).send(HitBuilders.EventBuilder()
+            AnalyticsMaster.getTracker(this@SinglePlayerActivity).send(HitBuilders.EventBuilder()
                     .setCategory(AnalyticsMaster.CATEGORY_ACTION)
                     .setAction(AnalyticsMaster.ACTION_LEADERBOARD)
                     .setLabel(AnalyticsMaster.LABEL_LAUNCH_COUNT)
@@ -1087,7 +1087,7 @@ class GameActivity : ChameleonActivity(), GoogleApiClient.ConnectionCallbacks, G
             Toast.makeText(this, R.string.you_must_be_signed_in, Toast.LENGTH_SHORT).show()
         }
         try {
-            AnalyticsMaster.getTracker(this@GameActivity).send(HitBuilders.EventBuilder()
+            AnalyticsMaster.getTracker(this@SinglePlayerActivity).send(HitBuilders.EventBuilder()
                     .setCategory(AnalyticsMaster.CATEGORY_ACTION)
                     .setAction(AnalyticsMaster.ACTION_ACHIEVEMENTS)
                     .setLabel(AnalyticsMaster.LABEL_LAUNCH_COUNT)
